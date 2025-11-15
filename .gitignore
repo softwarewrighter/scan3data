@@ -1,0 +1,9 @@
+/target
+/test-data
+/crates/*/target
+dist/
+*.wasm
+pkg/
+node_modules/
+.DS_Store
+

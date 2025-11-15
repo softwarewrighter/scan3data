@@ -1,0 +1,57 @@
+PROJECT NOTES FOR scan2data
+===========================
+
+RUST-FIRST PHILOSOPHY
+---------------------
+This is a Rust-focused project. ALL business logic, processing, and presentation
+should be in Rust. Avoid JavaScript, TypeScript, and Python.
+
+- Frontend: Yew (Rust compiled to WASM), not React/Vue/Svelte
+- Backend: Axum (Rust), not Express/FastAPI
+- Image processing: image/imageproc crates, not PIL/OpenCV-Python
+- OCR integration: leptess (Rust bindings), not calling pytesseract
+- CLI: clap (Rust), not argparse/click
+
+The only acceptable use of non-Rust code:
+- Calling external binaries via Command::new() when no Rust alternative exists
+- Minimal HTML/CSS for the web UI structure (unavoidable)
+
+DUPLICATE DETECTION REQUIREMENT
+--------------------------------
+The ./test-data directory contains many duplicate scans with different filenames.
+During the "ingest" phase, duplicates MUST be detected and combined.
+
+Requirements:
+1. Compute hash (SHA-256) of image contents to detect exact duplicates
+2. When duplicates found, store only ONE copy of the image
+3. Store ALL filenames in metadata as an array
+4. The multiple filenames provide context hints for LLMs:
+   - "forth-interpreter-p1.jpg" + "moore-1130-page1.jpg" -> likely Chuck Moore's Forth
+   - Filename patterns may indicate: language, author, page number, deck name
+
+Implementation approach:
+```rust
+struct ImageMetadata {
+    content_hash: String,          // SHA-256 of image bytes
+    original_filenames: Vec<String>, // All filenames that map to this image
+    primary_filename: String,       // First/canonical filename
+    // ... other metadata
+}
+```
+
+Example:
+- User uploads "scan001.jpg" and "page1.tif"
+- Both have same content hash
+- Store one image, metadata contains both names
+- LLM prompt can include: "This image has filenames: scan001.jpg, page1.tif"
+
+TEST DATA DIRECTORY
+-------------------
+The ./test-data directory is .gitignored and contains actual scans for testing.
+This data should be used for:
+- Integration testing
+- Duplicate detection testing
+- LLM classification validation
+- End-to-end pipeline testing
+
+Do not commit test-data to git (it's large and may contain sensitive material).

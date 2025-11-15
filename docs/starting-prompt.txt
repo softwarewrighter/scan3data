@@ -1,0 +1,217 @@
+STARTING PROMPT FOR scan2data PROJECT
+======================================
+
+Date: 2025-11-15
+User: mike
+
+PROMPT:
+-------
+read docs/research.md and come up with an initial set of build/serve scripts and a
+first-pass at a multi-crate approach using Yew for front-end (use-cases to be fleshed
+out later--possible two version: (1) standalone browser SPA--all processing in browser
+and (3) REST API Rust backend and Yew SPA client);
+
+This project will provide a CLI that can serve either UI (with/without backend running),
+and also command line only tasks, like ingesting, analyzing, fixing, exporting etc.
+
+Plan to use the suggested non-LLM OCR approach with future iterations adding LLM
+(local Ollama vision models) for refining the scanned data.
+
+Consider the alternate approaches and attempt to start with some common Rust code that
+can be adapted to go in different suggested directions.
+
+Document this prompt in docs/starting-prompt.txt
+
+CONTEXT FROM RESEARCH:
+----------------------
+The research document (docs/research.txt) contains a detailed ChatGPT conversation about
+building a Yew/Rust/WASM project for processing scans of old computer listings and punch
+cards, specifically targeting IBM 1130 emulator consumption.
+
+KEY REQUIREMENTS EXTRACTED:
+---------------------------
+
+1. CORE FUNCTIONALITY:
+   - Process scans of IBM 1130 punch cards and listings
+   - Handle both text decks and binary/object decks
+   - Support fuzzy/stained scans with handwritten notes
+   - Produce data consumable by IBM 1130 emulator
+   - Classify content: assembler source vs output listing, text vs binary cards
+   - Reconstruct order of intermingled/out-of-order pages and cards
+   - Detect gaps and missing sections
+   - Reverse-engineer source from object decks when possible
+
+2. TECHNICAL APPROACH (PHASED):
+
+   Phase 1 - Baseline (non-LLM):
+   - Classical image preprocessing (deskew, threshold, denoise)
+   - Tesseract OCR via leptess crate
+   - Deterministic IBM 1130 object deck parsing
+   - Output structured JSON for emulator
+
+   Phase 2 - LLM Integration:
+   - Vision LLM (Qwen2.5-VL 7B or Phi-3.5-Vision) via Ollama
+   - Text LLM (Qwen2.5 3B or Phi-4) for refinement
+   - Classification and ordering suggestions
+   - Cross-validation of OCR results
+
+   Phase 3 - Advanced:
+   - Document denoising/super-resolution (optional)
+   - Fine-tuned models for specific card layouts
+   - Advanced reverse-engineering
+
+3. ARCHITECTURE OPTIONS:
+
+   Option A - Yew UI + Rust Backend + Ollama (RECOMMENDED):
+   - Frontend: Yew/WASM (file upload, preview, manual corrections)
+   - Backend: Rust server (Axum/Warp) with image processing
+   - Models: Ollama daemon (local, HTTP API)
+   - Pros: Clean separation, easy model swapping, strong backend capabilities
+   - Cons: Requires local server
+
+   Option B - CLI Batch Processor + Yew Review UI:
+   - CLI: Rust tool for bulk processing
+   - Yew: Static viewer/editor for CLI outputs
+   - Pros: Simple web side, great for batches
+   - Cons: No real-time browser experience
+
+   Option C - Browser-Heavy WASM:
+   - Preprocessing in WASM (Photon library)
+   - Thin backend only for VLM calls
+   - Pros: Lower bandwidth, responsive UI
+   - Cons: More WASM complexity, debugging harder
+
+4. MULTI-CRATE WORKSPACE DESIGN:
+
+   core_pipeline/
+   - Pure Rust library: no networking
+   - Image preprocessing (image, imageproc, opencv optional)
+   - OCR integration (leptess for Tesseract)
+   - Object deck parser
+   - Canonical Intermediate Representation (CIR)
+   - Ordering algorithms
+   - Disassembler
+
+   llm_bridge/
+   - Ollama HTTP API client
+   - Vision model integration (Qwen2.5-VL, Phi-Vision, LLaVA)
+   - Text model integration (Qwen2.5, Phi-4)
+   - Prompt templates
+
+   cli/
+   - Command-line interface
+   - Commands: ingest, analyze, classify, fix, export
+   - Batch processing
+   - Can serve either UI mode
+
+   server/
+   - REST API (Axum or Warp)
+   - Job queue/status tracking
+   - Wraps core_pipeline + llm_bridge
+   - WebSocket support for progress
+
+   yew_frontend/
+   - Browser UI (Yew/WASM)
+   - File upload
+   - Page/card ordering UI (drag-drop)
+   - Reconstruction visualization
+   - Manual correction tools
+   - Two modes: standalone SPA vs API client
+
+5. DATA MODELS (Canonical Intermediate Representation):
+
+   struct PageArtifact {
+       id: PageId,
+       scan_set: ScanSetId,
+       raw_image_path: PathBuf,
+       processed_image_path: Option<PathBuf>,
+       layout_label: ArtifactKind,
+       content_text: Option<String>,
+       metadata: PageMetadata,  // page no, headers, etc.
+   }
+
+   struct CardArtifact {
+       id: CardId,
+       scan_set: ScanSetId,
+       raw_image_path: PathBuf,
+       processed_image_path: Option<PathBuf>,
+       layout_label: ArtifactKind,
+       text_80col: Option<String>,
+       binary_80col: Option<Vec<u8>>,
+       metadata: CardMetadata,  // seq columns, deck name
+   }
+
+   enum ArtifactKind {
+       CardText,       // text source card
+       CardObject,     // binary/object deck card
+       CardData,       // data-only card
+       ListingSource,  // source listing
+       ListingObject,  // listing with object code
+       RuntimeOutput,
+       Unknown,
+   }
+
+6. RUST CRATES IDENTIFIED:
+
+   Image Processing:
+   - image, imageproc (core operations)
+   - opencv (optional, for advanced deblurring)
+   - rten-imageproc (modern Rust-native)
+   - photon (WASM image processing)
+
+   OCR:
+   - leptess (Tesseract + Leptonica wrapper)
+
+   Web Stack:
+   - Backend: axum or warp
+   - Frontend: yew, wasm-bindgen, gloo
+   - Serialization: serde, serde_json
+
+   CLI:
+   - clap or argh
+
+   Storage:
+   - sqlite or sled (job tracking, CIR persistence)
+
+7. BUILD/SERVE REQUIREMENTS:
+   - Build all crates (workspace build)
+   - Build WASM frontend (wasm-pack)
+   - Serve standalone SPA mode (static files)
+   - Serve API + frontend mode (server + static)
+   - CLI-only mode (no server needed)
+
+8. SPECIAL CONSIDERATIONS:
+   - IBM 1130 punch cards are 80-column
+   - Object decks have compressed label columns (need lookup tables)
+   - Sequence numbers typically in columns 73-80
+   - Must preserve bit-level accuracy for binary decks
+   - LLMs should NEVER modify binary data directly
+   - Support for Chuck Moore's 1130 Forth (may be non-standard)
+   - Handle out-of-order pages (e.g., "page 1, 4 unknown pages, then pages 2-12")
+   - Detect gaps in sequence numbers
+   - Support reverse-engineering: object deck -> disassembly -> source
+
+IMPLEMENTATION STRATEGY:
+------------------------
+Start with Architecture A (Yew + Backend + Ollama) but design core_pipeline to be
+reusable across all three architectures. Focus on Phase 1 (non-LLM baseline) first,
+with clear extension points for Phase 2 (LLM integration).
+
+The workspace structure allows:
+- CLI-only usage (core_pipeline + cli)
+- Backend-only usage (core_pipeline + llm_bridge + server)
+- Full-stack usage (all crates)
+- Standalone WASM (core_pipeline compiled to WASM + yew_frontend)
+
+NEXT STEPS:
+-----------
+1. Set up Cargo workspace with 5 crates
+2. Create build scripts (build-all.sh, build-wasm.sh, build-cli.sh)
+3. Create serve scripts (serve-spa.sh, serve-api.sh)
+4. Define CIR types in core_pipeline
+5. Implement basic image preprocessing
+6. Add Tesseract OCR integration
+7. Create minimal CLI with placeholder commands
+8. Create minimal server with health check endpoint
+9. Create minimal Yew app with file upload UI
+10. Write initial tests with synthetic card/listing samples
