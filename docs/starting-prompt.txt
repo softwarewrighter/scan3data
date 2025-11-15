@@ -1,4 +1,9 @@
-STARTING PROMPT FOR scan2data PROJECT
+STARTING PROMPT FOR scan3data PROJECT
+
+NOTE: The "3" in scan3data represents our three-phase processing pipeline:
+1. Scan - Ingest and digitize
+2. Classify & Correct - Analyze and refine
+3. Convert - Transform to structured output
 ======================================
 
 Date: 2025-11-15

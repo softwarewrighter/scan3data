@@ -5,7 +5,7 @@ set -euo pipefail
 
 echo "=== Building Server ==="
 
-cargo build --package scan2data-server --release
+cargo build --package scan3data-server --release
 
 echo "=== Server build complete ==="
-echo "Binary: target/release/scan2data-server"
+echo "Binary: target/release/scan3data-server"

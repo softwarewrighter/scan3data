@@ -1,11 +1,21 @@
 # Architecture Overview
 
+## Why "scan3data"?
+
+The **3** represents our **three-phase processing pipeline**:
+
+1. **Scan** - Ingest and digitize (image acquisition, duplicate detection, preprocessing)
+2. **Classify & Correct** - Analyze and refine (OCR, LLM classification, ordering, gap detection)
+3. **Convert** - Transform to structured output (emulator formats, reconstruction, export)
+
+This isn't just a simple scanner - it's a complete three-stage transformation pipeline from messy historical scans to pristine emulator-ready data.
+
 ## Multi-Crate Workspace Design
 
-scan2data is organized as a Cargo workspace with 5 interconnected crates:
+scan3data is organized as a Cargo workspace with 5 interconnected crates:
 
 ```
-scan2data (workspace root)
+scan3data (workspace root)
 +
 +-- crates/
     |
@@ -144,10 +154,17 @@ HighLevelArtifact (After reconstruction)
 
 ### Mode 1: CLI-Only (Batch Processing)
 
+Three-phase pipeline via CLI commands:
+
 ```bash
-scan2data ingest -i ./scans -o ./scan_set_001
-scan2data analyze -s ./scan_set_001
-scan2data export -s ./scan_set_001 -o output.json
+# Phase 1: Scan
+scan3data ingest -i ./scans -o ./scan_set_001
+
+# Phase 2: Classify & Correct
+scan3data analyze -s ./scan_set_001
+
+# Phase 3: Convert
+scan3data export -s ./scan_set_001 -o output.json
 ```
 
 Use case: Batch processing large collections, CI/CD pipelines

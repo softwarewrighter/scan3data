@@ -1,13 +1,14 @@
-//! scan2data CLI
+//! scan3data CLI
 //!
 //! Command-line interface for processing IBM 1130 scans
+//! The "3" represents our three-phase pipeline: Scan, Classify & Correct, Convert
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "scan2data")]
-#[command(about = "Process IBM 1130 punch card and listing scans", long_about = None)]
+#[command(name = "scan3data")]
+#[command(about = "Three-phase pipeline: Scan -> Classify & Correct -> Convert", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -15,7 +16,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Ingest scanned images into a scan set
+    /// Phase 1: Scan - Ingest scanned images into a scan set
     Ingest {
         /// Input directory or file
         #[arg(short, long)]
@@ -26,7 +27,7 @@ enum Commands {
         output: String,
     },
 
-    /// Analyze a scan set and classify artifacts
+    /// Phase 2: Classify & Correct - Analyze a scan set and classify artifacts
     Analyze {
         /// Scan set directory
         #[arg(short, long)]
@@ -37,7 +38,7 @@ enum Commands {
         use_llm: bool,
     },
 
-    /// Export a scan set to emulator format
+    /// Phase 3: Convert - Export a scan set to emulator format
     Export {
         /// Scan set directory
         #[arg(short, long)]

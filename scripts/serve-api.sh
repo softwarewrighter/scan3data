@@ -16,7 +16,7 @@ echo "  - Ollama LLM integration"
 echo ""
 
 # Check if server binary exists
-if [ ! -f "target/release/scan2data-server" ]; then
+if [ ! -f "target/release/scan3data-server" ]; then
     echo "Server binary not found. Building..."
     ./scripts/build-server.sh
 fi
@@ -29,4 +29,4 @@ fi
 
 # Run the server
 export RUST_LOG=info
-./target/release/scan2data-server
+./target/release/scan3data-server

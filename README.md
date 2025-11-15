@@ -1,6 +1,16 @@
-# scan2data
+# scan3data
 
 Process scanned images of IBM 1130 punch cards and computer listings into structured data for emulator consumption.
+
+## Why "scan3data"?
+
+The **3** represents our three-phase processing pipeline:
+
+1. **Scan** - Ingest and digitize (image acquisition, duplicate detection, preprocessing)
+2. **Classify & Correct** - Analyze and refine (OCR, LLM classification, ordering, gap detection)
+3. **Convert** - Transform to structured output (emulator formats, reconstruction, export)
+
+This isn't just a simple scanner - it's a complete **three-stage transformation pipeline** from messy historical scans to pristine emulator-ready data.
 
 ## Rust-First Philosophy
 
@@ -23,7 +33,7 @@ The only acceptable non-Rust code:
 This is a multi-crate Cargo workspace:
 
 ```
-scan2data/
+scan3data/
 +-- crates/
     +-- core_pipeline/    # Core processing logic (no networking)
     +-- llm_bridge/       # Ollama LLM integration
@@ -102,10 +112,10 @@ sudo apt-get install tesseract-ocr
 # Development mode (auto-rebuild)
 ./scripts/dev-wasm.sh
 
-# CLI commands
-cargo run -p scan2data-cli -- ingest -i ./scans -o ./output
-cargo run -p scan2data-cli -- analyze -s ./output --use-llm
-cargo run -p scan2data-cli -- export -s ./output -o deck.json
+# CLI commands (three-phase pipeline)
+cargo run -p scan3data-cli -- ingest -i ./scans -o ./output
+cargo run -p scan3data-cli -- analyze -s ./output --use-llm
+cargo run -p scan3data-cli -- export -s ./output -o deck.json
 ```
 
 ## Architecture
@@ -134,10 +144,10 @@ Integrates with local Ollama for:
 
 ### CLI (cli)
 
-Commands:
-- `ingest` - Import scans, detect duplicates, create scan set
-- `analyze` - Classify artifacts, extract text
-- `export` - Generate emulator-ready output
+Commands (three-phase pipeline):
+- `ingest` - **Phase 1: Scan** - Import scans, detect duplicates, create scan set
+- `analyze` - **Phase 2: Classify & Correct** - Classify artifacts, extract text, refine with LLM
+- `export` - **Phase 3: Convert** - Generate emulator-ready output
 - `serve` - Start web UI (SPA or API mode)
 
 ### Server (server)
@@ -201,8 +211,8 @@ cargo doc --open --workspace
 ```bash
 cargo build -p core_pipeline
 cargo build -p llm_bridge
-cargo build -p scan2data-cli
-cargo build -p scan2data-server
+cargo build -p scan3data-cli
+cargo build -p scan3data-server
 cargo build -p yew_frontend  # Note: Use trunk for WASM
 ```
 

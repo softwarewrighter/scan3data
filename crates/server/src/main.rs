@@ -1,4 +1,6 @@
-//! scan2data REST API server
+//! scan3data REST API server
+//!
+//! Three-phase processing pipeline: Scan -> Classify & Correct -> Convert
 
 use axum::{
     extract::State,

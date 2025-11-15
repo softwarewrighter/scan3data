@@ -2487,7 +2487,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "scan2data-cli"
+name = "scan3data-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2501,7 +2501,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "scan2data-server"
+name = "scan3data-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",

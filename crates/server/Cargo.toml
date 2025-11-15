@@ -1,12 +1,12 @@
 [package]
-name = "scan2data-server"
+name = "scan3data-server"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "scan2data-server"
+name = "scan3data-server"
 path = "src/main.rs"
 
 [dependencies]

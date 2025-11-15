@@ -5,7 +5,7 @@ set -euo pipefail
 
 echo "=== Building CLI ==="
 
-cargo build --package scan2data-cli --release
+cargo build --package scan3data-cli --release
 
 echo "=== CLI build complete ==="
-echo "Binary: target/release/scan2data"
+echo "Binary: target/release/scan3data"

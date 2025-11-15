@@ -4,7 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**scan2data** processes scanned images of IBM 1130 punch cards and computer listings, converting them into structured data for emulator consumption.
+**scan3data** processes scanned images of IBM 1130 punch cards and computer listings, converting them into structured data for emulator consumption.
+
+### Why "scan3data"?
+
+The **3** represents our **three-phase processing pipeline**:
+
+1. **Scan** - Ingest and digitize (image acquisition, duplicate detection, preprocessing)
+2. **Classify & Correct** - Analyze and refine (OCR, LLM classification, ordering, gap detection)
+3. **Convert** - Transform to structured output (emulator formats, reconstruction, export)
+
+This isn't just a simple scanner - it's a complete three-stage transformation pipeline from messy historical scans to pristine emulator-ready data.
 
 ### Architecture
 
@@ -21,12 +31,12 @@ This is a **multi-crate Cargo workspace** with 5 crates:
    - Text models (Qwen2.5, Phi-4) for refinement and ordering
    - HTTP client for Ollama API
 
-3. **cli** - Command-line interface (binary: scan2data)
-   - Commands: ingest, analyze, export, serve
+3. **cli** - Command-line interface (binary: scan3data)
+   - Commands: ingest, analyze, export, serve (three-phase pipeline)
    - Batch processing
    - Can serve either SPA or API mode
 
-4. **server** - REST API backend (binary: scan2data-server)
+4. **server** - REST API backend (binary: scan3data-server)
    - Axum-based HTTP server
    - Endpoints for scan set management, uploads, processing
    - Job queue and status tracking
@@ -96,8 +106,8 @@ cargo build --workspace --exclude yew_frontend  # Rust crates
 # Build single crate during development
 cargo build -p core_pipeline
 cargo build -p llm_bridge
-cargo build -p scan2data-cli
-cargo build -p scan2data-server
+cargo build -p scan3data-cli
+cargo build -p scan3data-server
 ```
 
 ### Testing
@@ -143,8 +153,8 @@ cargo doc --open --workspace
 # Backend: http://localhost:3000
 
 # Or use CLI directly
-cargo run -p scan2data-cli -- serve --mode spa --port 8080
-cargo run -p scan2data-cli -- serve --mode api --port 8080
+cargo run -p scan3data-cli -- serve --mode spa --port 8080
+cargo run -p scan3data-cli -- serve --mode api --port 8080
 ```
 
 ## Mandatory Pre-Commit Process

@@ -1,5 +1,17 @@
-PROJECT NOTES FOR scan2data
+PROJECT NOTES FOR scan3data
 ===========================
+
+WHY "scan3data"?
+----------------
+The "3" represents our three-phase processing pipeline:
+
+1. **Scan** - Ingest and digitize (image acquisition, duplicate detection, preprocessing)
+2. **Classify & Correct** - Analyze and refine (OCR, LLM classification, ordering, gap detection)
+3. **Convert** - Transform to structured output (emulator formats, reconstruction, export)
+
+This emphasizes that scan3data isn't just a simple scanner - it's a complete
+three-stage transformation pipeline from messy historical scans to pristine
+emulator-ready data.
 
 RUST-FIRST PHILOSOPHY
 ---------------------
