@@ -259,4 +259,6 @@ Key points:
 
 ## License
 
-MIT OR Apache-2.0
+MIT License - Copyright (c) 2025 Michael A Wright
+
+See [LICENSE](LICENSE) file for details.

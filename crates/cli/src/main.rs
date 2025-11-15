@@ -2,6 +2,8 @@
 //!
 //! Command-line interface for processing IBM 1130 scans
 //! The "3" represents our three-phase pipeline: Scan, Classify & Correct, Convert
+//!
+//! Copyright (c) 2025 Michael A Wright
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};

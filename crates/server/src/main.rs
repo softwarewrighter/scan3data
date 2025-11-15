@@ -1,6 +1,8 @@
 //! scan3data REST API server
 //!
 //! Three-phase processing pipeline: Scan -> Classify & Correct -> Convert
+//!
+//! Copyright (c) 2025 Michael A Wright
 
 use axum::{
     extract::State,
