@@ -77,6 +77,10 @@ pub enum ArtifactKind {
 /// Metadata for a page artifact
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageMetadata {
+    /// SHA-256 hash of the image content (for duplicate detection)
+    pub content_hash: String,
+    /// All original filenames that map to this image (duplicate detection)
+    pub original_filenames: Vec<String>,
     /// Detected page number (if present in header/footer)
     pub page_number: Option<u32>,
     /// Detected header text
@@ -92,6 +96,8 @@ pub struct PageMetadata {
 impl Default for PageMetadata {
     fn default() -> Self {
         Self {
+            content_hash: String::new(),
+            original_filenames: Vec::new(),
             page_number: None,
             header: None,
             footer: None,
@@ -104,6 +110,10 @@ impl Default for PageMetadata {
 /// Metadata for a card artifact
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CardMetadata {
+    /// SHA-256 hash of the image content (for duplicate detection)
+    pub content_hash: String,
+    /// All original filenames that map to this image (duplicate detection)
+    pub original_filenames: Vec<String>,
     /// Sequence number from columns 73-80 (if detected)
     pub sequence_number: Option<String>,
     /// Deck name (if detected from control cards)
@@ -119,6 +129,8 @@ pub struct CardMetadata {
 impl Default for CardMetadata {
     fn default() -> Self {
         Self {
+            content_hash: String::new(),
+            original_filenames: Vec::new(),
             sequence_number: None,
             deck_name: None,
             label_comment: None,
