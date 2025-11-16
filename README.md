@@ -2,6 +2,10 @@
 
 Process scanned images of IBM 1130 punch cards and computer listings into structured data for emulator consumption.
 
+![scan3data Web UI](images/screenshot.png)
+
+*Web UI running on port 7214 - Upload images for AI-powered OCR processing*
+
 ## Why "scan3data"?
 
 The **3** represents our three-phase processing pipeline:
@@ -126,20 +130,20 @@ Cost: Gemini 2.5 Flash Image is $0.039 per image.
 ### Run
 
 ```bash
-# Serve standalone SPA (all processing in browser)
-./scripts/serve-spa.sh 8080
+# Start the server (serves both API and web UI on port 7214)
+./target/release/scan3data-server
+# Then open http://localhost:7214 in your browser
 
-# Serve with backend API
-./scripts/serve-api.sh
-
-# Development mode (auto-rebuild)
-./scripts/dev-wasm.sh
+# Or use the CLI directly
+./target/release/scan3data serve --port 7214
 
 # CLI commands (three-phase pipeline)
-cargo run -p scan3data-cli -- ingest -i ./scans -o ./output
-cargo run -p scan3data-cli -- analyze -s ./output --use-llm
-cargo run -p scan3data-cli -- export -s ./output -o deck.json
+./target/release/scan3data ingest -i ./scans -o ./output
+./target/release/scan3data analyze -s ./output --use-vision
+./target/release/scan3data export -s ./output -o deck.json
 ```
+
+**Default Port**: The web UI and API both run on port **7214** to avoid CORS issues.
 
 ## Architecture
 

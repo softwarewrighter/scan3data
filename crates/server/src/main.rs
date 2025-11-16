@@ -15,6 +15,7 @@ use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 #[derive(Clone)]
@@ -29,17 +30,26 @@ async fn main() {
 
     let state = Arc::new(AppState {});
 
-    let app = Router::new()
+    // API routes
+    let api_routes = Router::new()
         .route("/health", get(health_check))
         .route("/api/scan_sets", post(create_scan_set))
         .route("/api/scan_sets/:id/upload", post(upload_image))
         .route("/api/scan_sets/:id/artifacts", get(get_artifacts))
         .route("/api/clean-image", post(clean_image))
-        .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
         .with_state(state);
 
-    let addr = "127.0.0.1:3000";
+    // Serve static files from dist directory (WASM frontend)
+    let serve_dir = ServeDir::new("dist").not_found_service(ServeDir::new("dist/index.html"));
+
+    // Combine routes: API routes take precedence, then static files
+    let app = Router::new()
+        .merge(api_routes)
+        .nest_service("/", serve_dir)
+        .layer(CorsLayer::permissive())
+        .layer(TraceLayer::new_for_http());
+
+    let addr = "127.0.0.1:7214";
     tracing::info!("Server listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

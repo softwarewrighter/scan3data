@@ -43,7 +43,7 @@ pub fn app() -> Html {
                             "image_data": base64_data
                         });
 
-                        match gloo_net::http::Request::post("http://localhost:3000/api/clean-image")
+                        match gloo_net::http::Request::post("http://localhost:7214/api/clean-image")
                             .json(&request)
                             .unwrap()
                             .send()

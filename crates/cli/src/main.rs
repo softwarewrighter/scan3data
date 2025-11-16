@@ -183,7 +183,7 @@ enum Commands {
     /// Serve the web UI
     Serve {
         /// Port to listen on
-        #[arg(short, long, default_value = "8080")]
+        #[arg(short, long, default_value = "7214")]
         port: u16,
 
         /// Mode: spa (standalone) or api (with backend)

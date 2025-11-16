@@ -8,13 +8,13 @@ echo "=== Building scan3data workspace ==="
 
 # Build Rust workspace (all crates except WASM)
 echo "Building Rust workspace..."
-cargo build --workspace --exclude yew_frontend
+cargo build --release --workspace --exclude yew_frontend
 
 # Build WASM frontend
 echo "Building WASM frontend..."
 ./scripts/build-wasm.sh
 
 echo "=== Build complete ==="
-echo "CLI binary: target/debug/scan3data"
-echo "Server binary: target/debug/scan3data-server"
+echo "CLI binary: target/release/scan3data"
+echo "Server binary: target/release/scan3data-server"
 echo "WASM output: dist/"
