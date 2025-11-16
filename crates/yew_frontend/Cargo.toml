@@ -12,9 +12,13 @@ crate-type = ["cdylib", "rlib"]
 core_pipeline = { path = "../core_pipeline" }
 yew = { workspace = true }
 wasm-bindgen = { workspace = true }
-web-sys = { workspace = true, features = ["File", "FileList", "FileReader", "Blob"] }
+web-sys = { workspace = true, features = ["File", "FileList", "FileReader", "Blob", "HtmlInputElement", "HtmlTextAreaElement", "InputEvent", "Event"] }
 gloo = { workspace = true }
 gloo-net = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 wasm-bindgen-futures = "0.4"
+base64 = "0.22"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
