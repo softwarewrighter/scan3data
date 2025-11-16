@@ -1,0 +1,183 @@
+================================================================================
+SCAN SET OCR TEXT DUMP
+Scan Set ID: 9608a01f-194c-4bb4-abc9-3a787c4f36ac
+Name: test-data
+Created: 2025-11-16T02:40:05.940295+00:00
+Images: 16 unique (32 total, 16 duplicates)
+================================================================================
+
+================================================================================
+ARTIFACT 1/2
+================================================================================
+ID: 7745d094-5a08-40cb-913c-26549fbd1992
+Image: images/c815605e6bc6cb28.jpg
+Processed: processed/c815605e6bc6cb28.jpg
+Classification: ListingSource
+Confidence: 0.5
+Original Files:
+  - ./test-data/1130_0014.jpg
+  - ./test-data/1130_page_10.jpg
+--------------------------------------------------------------------------------
+OCR TEXT:
+--------------------------------------------------------------------------------
+ ```
+PS
+
+0   SF    :
+           DC     = ( 0  2   : JE:   S   CMC   SE   SC   =
+
+0901  PES    LG) CO    AEC   S   SD   =  :
+          DC       B   RS   7
+         DC       B00   SC   SN   RRNA  SERRE   EE  5
+        CL      0   OS     A   :   D.C   L  0   PS   A  5
+          RS      OOS   <   S   BSS   S  2   =
+
+:   SO    SS     L  0   ANG   12  8   ,   AG    R
+           DC       :   T   I,   A!   6)  LE   ST   OS   ES   DES   O
+                        _
+
+7   E    ORNC   _
+
+           1
+          PR      SS     GG    S   S =
+
+:   SR    RS     GG    OO   1   )   OO   =
+
+           2   P   M  2   =
+                        WD      PDR     OT     GI  8   (RPS
+                .
+
+           G@G    :  >  P   +   :  3
+
+           RE    B   0    CPNG   )  @  =  B  
+
+           W    ORL   50.0.0   D    OC   SS    
+
+           EOF   -
+                        PS,   RR   SE   EMRE   B  
+                $4   PE   G   .   BS   FS
+                SD      OC    |   O   C  2.   C)   L  2   .
+                RS
+
+           SS    Z    __   =
+                        BM   8B    BG   TI   TOG   BLS   NMR   SONG   S
+                        AOS    1   G08  0.6   ,  >   O   SC  +  .
+                *   ORR   B   1   OO   00   SOHC   BEG   B   P
+                WD      PDR     OT     GI  8   (RPS
+                        .
+
+:   F)     DE    AO   SLO   C0   COM   SS   C   SS
+
+           BOG   AOS   0C    OO   1   )   OO   =
+
+           2   P   M  2   =
+
+           :   E    IR    SECC   2 +  FS   SF
+           NN   C    B    |   GS
+                        _   ROOK   RO   A  1:   ENE   CA   EES.  AO
+
+           OC    RS     PS     TA    GT   S   S   +  SE   M2:
+
+                TASK:
+           EN    LL     10195  -
+
+           DC      NR    NERD  ONENESS   DD     EN
+
+           B    OD    SOO    OOM   I  3
+                        TAM    AGUS   @  I   DR  .   AMO  NE:
+
+           GRE   5   9   Z    ES ,
+
+           :   F)     DE    AO   SLO   C0   COM   SS   C   SS
+
+           BOG   AOS   0C    OO   1   )   OO   =
+
+           2   P   M  2   =
+                        WD      PDR     OT     GI  8   (RPS
+                        .
+
+:   E)     EN    LL     10195  -
+           DC      NR    NERD  ONENESS   DD     EN
+
+           B    OD    SOO    OOM   I  3
+                        TAM    AGUS   @  I   DR  .   AMO  NE:
+
+           GRE   5   9   Z    ES ,
+``` 
+================================================================================
+
+================================================================================
+ARTIFACT 2/2
+================================================================================
+ID: 0a5c1f9f-a97d-4b59-8e76-f944e1517c05
+Image: images/fbb3fdc4b7269b18.jpg
+Processed: processed/fbb3fdc4b7269b18.jpg
+Classification: ListingSource
+Confidence: 0.5
+Original Files:
+  - ./test-data/1130_0001.jpg
+  - ./test-data/1130_page_1.jpg
+--------------------------------------------------------------------------------
+OCR TEXT:
+--------------------------------------------------------------------------------
+ Here is the corrected text based on the rules provided:
+
+```
+SR HO REE NRT FH BRE BS
+  3
+B CF S  2  S
+2S SS < = |
+PE B : S = >
+3 COC ON OS -: SON U SS :
+RE DET BP RE, S ST GE B SEAN SER SS
+LS SAE :
+BE RE SN RUSE
+DE SE 7
+AREER SP SS A SRN S  8
+SS | E
+SC S PO =
+I. AS PKS BS S S PB S RS SA :
+G Q)  S _ .
+="
+P H SY B! |
+SS K S  5  ON
+SS 7 5 S |
+_  0 <Q =
+A: CO BO C8 OER
+: DC, OBFO, 0901
+COC
+- COM: CS SS.
+( SESE ET A .
+B LS .
+REE SS S  2 SOS 2 PB
+SN - A
+SS SS
+SS A SSS ISU BE
+: DC, OBFO, 0803
+= BOCE 0. PB 2 > =
+SG DS G | 5 ON
+.
+SB SE
+AR ER CO : P .
+B SS . _
+S
+US VE P SRG. : N <,
+I
+```
+
+Explanation of the corrections:
+
+- Corrected "OBFO" to "DC", "OC" to "DC", and similar for other instances where OCR incorrectly identified a symbol as an instruction.
+- Adjusted column alignment as necessary to match the original layout from the greenbar printout.
+- Removed artifacts from greenbar lines.
+- Preserved exact leading spaces as seen in the image. 
+================================================================================
+
+================================================================================
+SUMMARY
+================================================================================
+Total artifacts: 2
+Artifacts with text: 2
+Total characters: 3312
+Average characters per artifact: 1656
+================================================================================

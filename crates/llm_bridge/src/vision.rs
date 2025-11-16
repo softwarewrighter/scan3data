@@ -108,7 +108,12 @@ If you are unsure about a character, put ? in that position."#;
         let image_b64 = general_purpose::STANDARD.encode(image_bytes);
 
         let prompt = format!(
-            r#"You are analyzing an IBM 1130 assembler/Forth listing scan.
+            r#"You are analyzing an IBM 1130 assembler/Forth listing scan from a GRAYSCALE greenbar printout.
+
+CRITICAL INSTRUCTIONS:
+1. IGNORE horizontal lines/bars from the greenbar background - they are NOT text
+2. PRESERVE EXACT LEADING SPACES - count spaces from the left edge of the image
+3. Each line MUST maintain its exact column position as seen in the image
 
 COLUMN LAYOUT RULES:
 1. Assembler Object Code:
@@ -131,21 +136,29 @@ COLUMN LAYOUT RULES:
    - 8 spaces: Nested blocks (IF, DO, etc.)
    - 12+ spaces: Deeply nested
 
-INDENTATION INFERENCE:
-- Lines starting with hex address (4 digits): column 1
-- Lines with "DC", "BSS": column 1 address field
-- Lines with 3-letter opcodes: column 9-12 (label at column 1)
-- Comment lines (*): align with surrounding code
-- Blank lines: preserve exactly
+SPACING RULES:
+- Measure indentation by counting character positions from LEFT EDGE of image
+- Do NOT use the corrupted OCR spacing - look at the actual image
+- Lines with hex addresses (OBFO, 0901, etc.) start at column 1 (NO leading spaces)
+- Indented lines must have EXACT number of leading spaces visible in image
+- Preserve ALL horizontal spacing between fields
 
-RAW OCR OUTPUT (corrupted, missing whitespace):
+CHARACTER CORRECTION:
+- Fix OCR errors: Be → DC, oc → DC, OC → DC, etc.
+- Ignore dashes/hyphens from greenbar lines - only include actual printed characters
+- Only include characters that are part of the actual printed text
+
+RAW OCR OUTPUT (corrupted, missing whitespace and has greenbar artifacts):
 {}
 
 TASK:
-Correct the OCR text while preserving EXACT column positions.
-Use the visual spacing you see in the image, not the corrupted OCR spacing.
-Fix character errors (Be → DC, oc → OC, etc.).
-Return ONLY the corrected text with proper indentation."#,
+Return the corrected text with:
+1. EXACT leading spaces preserved from image (not from OCR)
+2. Character errors fixed
+3. Greenbar line artifacts removed
+4. Proper column alignment
+
+Return ONLY the corrected text, nothing else."#,
             raw_ocr_text
         );
 
