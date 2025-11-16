@@ -64,6 +64,17 @@ enum Commands {
         format: String,
     },
 
+    /// Export raw OCR text to a text file for inspection
+    TextDump {
+        /// Scan set directory
+        #[arg(short, long)]
+        scan_set: String,
+
+        /// Output text file
+        #[arg(short, long)]
+        output: String,
+    },
+
     /// Serve the web UI
     Serve {
         /// Port to listen on
@@ -379,6 +390,139 @@ fn analyze_scan_set(scan_set_dir: &str, use_llm: bool) -> Result<()> {
     Ok(())
 }
 
+/// Export raw OCR text to a text file for inspection
+fn text_dump_scan_set(scan_set_dir: &str, output_file: &str) -> Result<()> {
+    let scan_set_path = Path::new(scan_set_dir);
+
+    if !scan_set_path.exists() {
+        anyhow::bail!("Scan set directory does not exist: {}", scan_set_dir);
+    }
+
+    println!("📝 Dumping OCR text from: {}", scan_set_dir);
+
+    // Load manifest
+    let manifest_path = scan_set_path.join("manifest.json");
+    let manifest_json = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("Failed to read manifest: {}", manifest_path.display()))?;
+    let manifest: ScanSetManifest =
+        serde_json::from_str(&manifest_json).context("Failed to parse manifest.json")?;
+
+    // Load artifacts
+    let artifacts_path = scan_set_path.join("artifacts.json");
+    let artifacts_json = fs::read_to_string(&artifacts_path)
+        .with_context(|| format!("Failed to read artifacts: {}", artifacts_path.display()))?;
+    let artifacts: Vec<PageArtifact> =
+        serde_json::from_str(&artifacts_json).context("Failed to parse artifacts.json")?;
+
+    // Build output text
+    let mut output = String::new();
+
+    // Header
+    output.push_str(
+        "================================================================================\n",
+    );
+    output.push_str("SCAN SET OCR TEXT DUMP\n");
+    output.push_str(&format!("Scan Set ID: {}\n", manifest.scan_set_id.0));
+    output.push_str(&format!("Name: {}\n", manifest.name));
+    output.push_str(&format!("Created: {}\n", manifest.created_at));
+    output.push_str(&format!(
+        "Images: {} unique ({} total, {} duplicates)\n",
+        manifest.image_count, manifest.original_file_count, manifest.duplicate_count
+    ));
+    output.push_str(
+        "================================================================================\n\n",
+    );
+
+    // Process each artifact
+    let mut artifacts_with_text = 0;
+    let mut total_chars = 0;
+
+    for (idx, artifact) in artifacts.iter().enumerate() {
+        output.push_str(
+            "================================================================================\n",
+        );
+        output.push_str(&format!("ARTIFACT {}/{}\n", idx + 1, artifacts.len()));
+        output.push_str(
+            "================================================================================\n",
+        );
+        output.push_str(&format!("ID: {}\n", artifact.id.0));
+        output.push_str(&format!("Image: {}\n", artifact.raw_image_path.display()));
+
+        if let Some(ref processed) = artifact.processed_image_path {
+            output.push_str(&format!("Processed: {}\n", processed.display()));
+        }
+
+        output.push_str(&format!("Classification: {:?}\n", artifact.layout_label));
+        output.push_str(&format!("Confidence: {}\n", artifact.metadata.confidence));
+
+        // Show original filenames if available
+        if !artifact.metadata.original_filenames.is_empty() {
+            output.push_str("Original Files:\n");
+            for filename in &artifact.metadata.original_filenames {
+                output.push_str(&format!("  - {}\n", filename));
+            }
+        }
+
+        output.push_str(
+            "--------------------------------------------------------------------------------\n",
+        );
+
+        if let Some(ref text) = artifact.content_text {
+            output.push_str("OCR TEXT:\n");
+            output.push_str("--------------------------------------------------------------------------------\n");
+            output.push_str(text);
+            if !text.ends_with('\n') {
+                output.push('\n');
+            }
+            artifacts_with_text += 1;
+            total_chars += text.len();
+        } else {
+            output.push_str("(No OCR text available)\n");
+        }
+
+        output.push_str(
+            "================================================================================\n\n",
+        );
+    }
+
+    // Summary footer
+    output.push_str(
+        "================================================================================\n",
+    );
+    output.push_str("SUMMARY\n");
+    output.push_str(
+        "================================================================================\n",
+    );
+    output.push_str(&format!("Total artifacts: {}\n", artifacts.len()));
+    output.push_str(&format!("Artifacts with text: {}\n", artifacts_with_text));
+    output.push_str(&format!("Total characters: {}\n", total_chars));
+    if artifacts_with_text > 0 {
+        output.push_str(&format!(
+            "Average characters per artifact: {}\n",
+            total_chars / artifacts_with_text
+        ));
+    }
+    output.push_str(
+        "================================================================================\n",
+    );
+
+    // Write to file
+    fs::write(output_file, &output)
+        .with_context(|| format!("Failed to write output file: {}", output_file))?;
+
+    println!("✅ Text dump complete!");
+    println!("   Output: {}", output_file);
+    println!(
+        "   Artifacts with text: {}/{}",
+        artifacts_with_text,
+        artifacts.len()
+    );
+    println!("   Total characters: {}", total_chars);
+    println!("\n💡 Tip: View with a monospace font to see OCR layout");
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize tracing
@@ -402,6 +546,10 @@ async fn main() -> Result<()> {
         } => {
             println!("Exporting {} -> {} (format: {})", scan_set, output, format);
             // TODO: Implement export command
+            Ok(())
+        }
+        Commands::TextDump { scan_set, output } => {
+            text_dump_scan_set(&scan_set, &output)?;
             Ok(())
         }
         Commands::Serve { port, mode } => {
