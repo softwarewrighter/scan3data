@@ -80,13 +80,15 @@ rustup target add wasm32-unknown-unknown
 # Trunk (for WASM builds)
 cargo install trunk
 
-# Tesseract (for OCR)
+# Tesseract (for OCR) and dependencies
 # macOS:
-brew install tesseract
+brew install tesseract pkgconf
 
 # Linux:
-sudo apt-get install tesseract-ocr
+sudo apt-get install tesseract-ocr pkg-config libleptonica-dev libtesseract-dev
 ```
+
+**Note**: The `leptess` crate requires Tesseract and Leptonica libraries. On macOS, `pkgconf` is needed for the build process.
 
 ### Build
 
