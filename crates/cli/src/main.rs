@@ -47,6 +47,14 @@ enum Commands {
         /// Use LLM for classification
         #[arg(long)]
         use_llm: bool,
+
+        /// Use vision model for OCR correction with layout preservation
+        #[arg(long)]
+        use_vision: bool,
+
+        /// Vision model to use (default: llava:latest)
+        #[arg(long, default_value = "llava:latest")]
+        vision_model: String,
     },
 
     /// Phase 3: Convert - Export a scan set to emulator format
@@ -277,7 +285,12 @@ fn ingest_scan_set(input_path: &str, output_dir: &str) -> Result<()> {
 }
 
 /// Analyze a scan set using OCR and optional LLM classification
-fn analyze_scan_set(scan_set_dir: &str, use_llm: bool) -> Result<()> {
+async fn analyze_scan_set(
+    scan_set_dir: &str,
+    use_llm: bool,
+    use_vision: bool,
+    vision_model: &str,
+) -> Result<()> {
     let scan_set_path = Path::new(scan_set_dir);
 
     if !scan_set_path.exists() {
@@ -309,6 +322,18 @@ fn analyze_scan_set(scan_set_dir: &str, use_llm: bool) -> Result<()> {
         println!("🤖 LLM mode enabled (not yet implemented)");
     }
 
+    // Initialize vision model if requested
+    let vision_client = if use_vision {
+        println!("👁️  Vision mode enabled (model: {})", vision_model);
+        let client = llm_bridge::OllamaClient::default_client()?;
+        Some(llm_bridge::VisionModel::new(
+            client,
+            vision_model.to_string(),
+        ))
+    } else {
+        None
+    };
+
     // Process each artifact
     let processed_dir = scan_set_path.join("processed");
     let total_artifacts = artifacts.len();
@@ -338,7 +363,36 @@ fn analyze_scan_set(scan_set_dir: &str, use_llm: bool) -> Result<()> {
         // Run OCR
         match extract_text_tesseract(&preprocessed) {
             Ok(text) => {
-                artifact.content_text = Some(text);
+                // If vision correction is enabled, correct the OCR text
+                if let Some(ref vision) = vision_client {
+                    // Load original image bytes for vision model
+                    let image_bytes = fs::read(&raw_image_path)?;
+
+                    match vision.correct_ocr_with_layout(&image_bytes, &text).await {
+                        Ok(corrected_text) => {
+                            artifact.content_text = Some(corrected_text);
+                            artifact
+                                .metadata
+                                .notes
+                                .push("Vision-corrected OCR".to_string());
+                        }
+                        Err(e) => {
+                            eprintln!(
+                                "\n   Warning: Vision correction failed for {}: {}",
+                                artifact.raw_image_path.display(),
+                                e
+                            );
+                            // Fall back to raw OCR text
+                            artifact.content_text = Some(text);
+                            artifact
+                                .metadata
+                                .notes
+                                .push(format!("Vision correction failed: {}", e));
+                        }
+                    }
+                } else {
+                    artifact.content_text = Some(text);
+                }
             }
             Err(e) => {
                 // Log OCR error but continue processing
@@ -535,8 +589,13 @@ async fn main() -> Result<()> {
             ingest_scan_set(&input, &output)?;
             Ok(())
         }
-        Commands::Analyze { scan_set, use_llm } => {
-            analyze_scan_set(&scan_set, use_llm)?;
+        Commands::Analyze {
+            scan_set,
+            use_llm,
+            use_vision,
+            vision_model,
+        } => {
+            analyze_scan_set(&scan_set, use_llm, use_vision, &vision_model).await?;
             Ok(())
         }
         Commands::Export {

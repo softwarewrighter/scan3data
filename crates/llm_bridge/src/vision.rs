@@ -94,6 +94,75 @@ If you are unsure about a character, put ? in that position."#;
         // TODO: Parse and validate 80-character response
         Ok(response.message.content)
     }
+
+    /// Correct OCR text using vision model with layout preservation
+    ///
+    /// Uses a two-pass approach:
+    /// 1. Analyze image to detect format and column layout
+    /// 2. Correct OCR text preserving exact spacing
+    pub async fn correct_ocr_with_layout(
+        &self,
+        image_bytes: &[u8],
+        raw_ocr_text: &str,
+    ) -> Result<String> {
+        let image_b64 = general_purpose::STANDARD.encode(image_bytes);
+
+        let prompt = format!(
+            r#"You are analyzing an IBM 1130 assembler/Forth listing scan.
+
+COLUMN LAYOUT RULES:
+1. Assembler Object Code:
+   - Columns 1-4: Location (hex address)
+   - Column 5: Flag (-, =, ', or blank)
+   - Columns 6-9: Object word 1
+   - Columns 10-13: Object word 2 (optional)
+   - Columns 14-19: Opcode (DC, BSS, etc.)
+   - Columns 20+: Operands and comments
+
+2. Assembler Source:
+   - Columns 1-5: Label (left-aligned)
+   - Columns 9-12: Opcode (e.g., LDX, STX, BSI)
+   - Columns 15+: Operands
+   - Columns 40+: Comments (after *)
+
+3. Forth Code:
+   - Column 1: Top-level definitions (: WORD)
+   - 4 spaces: Primary code
+   - 8 spaces: Nested blocks (IF, DO, etc.)
+   - 12+ spaces: Deeply nested
+
+INDENTATION INFERENCE:
+- Lines starting with hex address (4 digits): column 1
+- Lines with "DC", "BSS": column 1 address field
+- Lines with 3-letter opcodes: column 9-12 (label at column 1)
+- Comment lines (*): align with surrounding code
+- Blank lines: preserve exactly
+
+RAW OCR OUTPUT (corrupted, missing whitespace):
+{}
+
+TASK:
+Correct the OCR text while preserving EXACT column positions.
+Use the visual spacing you see in the image, not the corrupted OCR spacing.
+Fix character errors (Be → DC, oc → OC, etc.).
+Return ONLY the corrected text with proper indentation."#,
+            raw_ocr_text
+        );
+
+        let request = ChatRequest {
+            model: self.model_name.clone(),
+            messages: vec![ChatMessage {
+                role: "user".to_string(),
+                content: prompt,
+            }],
+            images: Some(vec![image_b64]),
+            stream: Some(false),
+        };
+
+        let response = self.client.chat(request).await?;
+
+        Ok(response.message.content)
+    }
 }
 
 #[cfg(test)]
