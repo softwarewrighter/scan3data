@@ -29,12 +29,51 @@ pub fn app() -> Html {
         let pipeline_data = pipeline_data.clone();
         let current_stage = current_stage.clone();
         Callback::from(move |_| {
-            // TODO: Call Imagen 3 API
-            // For now, just copy original to cleaned
-            let mut data = (*pipeline_data).clone();
-            data.cleaned_image = data.original_image.clone();
-            pipeline_data.set(data);
-            current_stage.set(PipelineStage::OcrExtraction);
+            let pipeline_data = pipeline_data.clone();
+            let current_stage = current_stage.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+                // Get the original image data (format: "data:image/jpeg;base64,...")
+                let data = (*pipeline_data).clone();
+                if let Some(data_url) = &data.original_image {
+                    // Extract base64 part after the comma
+                    if let Some(base64_data) = data_url.split(',').nth(1) {
+                        // Call the API endpoint
+                        let request = serde_json::json!({
+                            "image_data": base64_data
+                        });
+
+                        match gloo_net::http::Request::post("http://localhost:3000/api/clean-image")
+                            .json(&request)
+                            .unwrap()
+                            .send()
+                            .await
+                        {
+                            Ok(response) => {
+                                if response.ok() {
+                                    if let Ok(json) = response.json::<serde_json::Value>().await {
+                                        if let Some(cleaned_b64) =
+                                            json.get("cleaned_image_data").and_then(|v| v.as_str())
+                                        {
+                                            // Create new data URL with cleaned image
+                                            let cleaned_url =
+                                                format!("data:image/jpeg;base64,{}", cleaned_b64);
+
+                                            let mut new_data = (*pipeline_data).clone();
+                                            new_data.cleaned_image = Some(cleaned_url);
+                                            pipeline_data.set(new_data);
+                                            current_stage.set(PipelineStage::OcrExtraction);
+                                        }
+                                    }
+                                }
+                            }
+                            Err(err) => {
+                                gloo::console::error!("Failed to clean image:", err.to_string());
+                            }
+                        }
+                    }
+                }
+            });
         })
     };
 

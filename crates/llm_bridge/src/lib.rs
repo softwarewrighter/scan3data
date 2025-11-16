@@ -6,10 +6,12 @@
 //!
 //! Copyright (c) 2025 Michael A Wright
 
+pub mod imagen;
 pub mod ollama;
 pub mod text;
 pub mod vision;
 
+pub use imagen::{GeminiClient, GeminiConfig};
 pub use ollama::{OllamaClient, OllamaConfig};
 pub use text::TextModel;
 pub use vision::VisionModel;

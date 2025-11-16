@@ -11,6 +11,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
@@ -33,6 +34,7 @@ async fn main() {
         .route("/api/scan_sets", post(create_scan_set))
         .route("/api/scan_sets/:id/upload", post(upload_image))
         .route("/api/scan_sets/:id/artifacts", get(get_artifacts))
+        .route("/api/clean-image", post(clean_image))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(state);
@@ -96,4 +98,78 @@ struct ArtifactsResponse {
 struct ArtifactInfo {
     id: String,
     kind: String,
+}
+
+#[derive(Deserialize)]
+struct CleanImageRequest {
+    /// Base64-encoded image data
+    image_data: String,
+}
+
+#[derive(Serialize)]
+struct CleanImageResponse {
+    /// Base64-encoded cleaned image data
+    cleaned_image_data: String,
+}
+
+async fn clean_image(
+    State(_state): State<Arc<AppState>>,
+    Json(payload): Json<CleanImageRequest>,
+) -> Result<Json<CleanImageResponse>, StatusCode> {
+    // Decode base64 image
+    let image_bytes = general_purpose::STANDARD
+        .decode(&payload.image_data)
+        .map_err(|e| {
+            tracing::error!("Failed to decode base64 image: {}", e);
+            StatusCode::BAD_REQUEST
+        })?;
+
+    // Create Gemini client from environment
+    let gemini_client = llm_bridge::GeminiClient::from_env().map_err(|e| {
+        tracing::error!("Failed to create Gemini client: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    // Clean the image
+    let cleaned_bytes = gemini_client.clean_image(&image_bytes).await.map_err(|e| {
+        tracing::error!("Failed to clean image: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    // Encode back to base64
+    let cleaned_b64 = general_purpose::STANDARD.encode(&cleaned_bytes);
+
+    Ok(Json(CleanImageResponse {
+        cleaned_image_data: cleaned_b64,
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clean_image_request_deserialize() {
+        let json = r#"{"image_data": "dGVzdA=="}"#;
+        let req: CleanImageRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.image_data, "dGVzdA==");
+    }
+
+    #[test]
+    fn test_clean_image_response_serialize() {
+        let response = CleanImageResponse {
+            cleaned_image_data: "Y2xlYW5lZA==".to_string(),
+        };
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("cleaned_image_data"));
+        assert!(json.contains("Y2xlYW5lZA=="));
+    }
+
+    #[test]
+    fn test_base64_roundtrip() {
+        let original = b"test image data";
+        let encoded = general_purpose::STANDARD.encode(original);
+        let decoded = general_purpose::STANDARD.decode(&encoded).unwrap();
+        assert_eq!(original, decoded.as_slice());
+    }
 }
