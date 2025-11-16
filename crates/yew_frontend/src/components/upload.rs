@@ -5,7 +5,7 @@ use yew::prelude::*;
 
 #[function_component(UploadComponent)]
 pub fn upload_component() -> Html {
-    let files_state = use_state(|| Vec::<String>::new());
+    let files_state = use_state(Vec::<String>::new);
 
     let on_file_change = {
         let files_state = files_state.clone();

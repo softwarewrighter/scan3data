@@ -30,10 +30,10 @@ scan3data (workspace root)
     |   +-- vision.rs       Vision model wrapper (Qwen2.5-VL)
     |   +-- text.rs         Text model wrapper (Qwen2.5)
     |
-    +-- cli/                [Binary crate - scan2data]
+    +-- cli/                [Binary crate - scan3data]
     |   +-- main.rs         Commands: ingest, analyze, export, serve
     |
-    +-- server/             [Binary crate - scan2data-server]
+    +-- server/             [Binary crate - scan3data-server]
     |   +-- main.rs         Axum REST API server
     |
     +-- yew_frontend/       [Library crate - WASM target]

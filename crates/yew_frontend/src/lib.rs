@@ -1,6 +1,4 @@
-//! scan2data Yew frontend
-
-use yew::prelude::*;
+//! scan3data Yew frontend
 
 mod app;
 mod components;

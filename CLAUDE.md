@@ -87,11 +87,11 @@ cargo build --workspace --exclude yew_frontend  # Rust crates
 ```bash
 # CLI only (faster)
 ./scripts/build-cli.sh
-# Output: target/release/scan2data
+# Output: target/release/scan3data
 
 # Server only
 ./scripts/build-server.sh
-# Output: target/release/scan2data-server
+# Output: target/release/scan3data-server
 
 # WASM frontend only
 ./scripts/build-wasm.sh

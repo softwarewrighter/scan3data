@@ -1,4 +1,4 @@
-//! Core types for the scan2data pipeline
+//! Core types for the scan3data pipeline
 //!
 //! This module defines the Canonical Intermediate Representation (CIR)
 //! used throughout the processing pipeline.
