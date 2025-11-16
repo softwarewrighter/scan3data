@@ -83,6 +83,21 @@ enum Commands {
         output: String,
     },
 
+    /// Generate HTML comparison view (original image vs corrected text)
+    Compare {
+        /// Scan set directory
+        #[arg(short, long)]
+        scan_set: String,
+
+        /// Output HTML file
+        #[arg(short, long)]
+        output: String,
+
+        /// Show column grid overlay
+        #[arg(long)]
+        show_grid: bool,
+    },
+
     /// Serve the web UI
     Serve {
         /// Port to listen on
@@ -577,6 +592,251 @@ fn text_dump_scan_set(scan_set_dir: &str, output_file: &str) -> Result<()> {
     Ok(())
 }
 
+/// Generate HTML comparison view of original images vs corrected OCR text
+fn generate_comparison_html(scan_set_dir: &str, output_file: &str, show_grid: bool) -> Result<()> {
+    let scan_set_path = Path::new(scan_set_dir);
+
+    if !scan_set_path.exists() {
+        anyhow::bail!("Scan set directory does not exist: {}", scan_set_dir);
+    }
+
+    println!("📊 Generating comparison view: {}", scan_set_dir);
+
+    // Load manifest and artifacts
+    let manifest_path = scan_set_path.join("manifest.json");
+    let manifest_json = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("Failed to read manifest: {}", manifest_path.display()))?;
+    let _manifest: ScanSetManifest =
+        serde_json::from_str(&manifest_json).context("Failed to parse manifest.json")?;
+
+    let artifacts_path = scan_set_path.join("artifacts.json");
+    let artifacts_json = fs::read_to_string(&artifacts_path)
+        .with_context(|| format!("Failed to read artifacts: {}", artifacts_path.display()))?;
+    let artifacts: Vec<PageArtifact> =
+        serde_json::from_str(&artifacts_json).context("Failed to parse artifacts.json")?;
+
+    println!("📄 Processing {} artifact(s)...", artifacts.len());
+
+    // Build HTML
+    let mut html = String::new();
+
+    // HTML header with CSS
+    html.push_str(&generate_html_header(show_grid));
+
+    // Add each artifact comparison
+    for (idx, artifact) in artifacts.iter().enumerate() {
+        println!("   Artifact {}/{}", idx + 1, artifacts.len());
+
+        // Encode image as base64 data URL
+        let image_path = scan_set_path.join(&artifact.raw_image_path);
+        let image_bytes = fs::read(&image_path)
+            .with_context(|| format!("Failed to read image: {}", image_path.display()))?;
+        let image_b64 =
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &image_bytes);
+        let image_ext = image_path
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("jpg");
+        let data_url = format!("data:image/{};base64,{}", image_ext, image_b64);
+
+        // Get corrected text
+        let corrected_text = artifact
+            .content_text
+            .as_deref()
+            .unwrap_or("[No text extracted]");
+
+        // Get metadata
+        let filenames = artifact.metadata.original_filenames.join(", ");
+        let notes = if artifact.metadata.notes.is_empty() {
+            "None".to_string()
+        } else {
+            artifact.metadata.notes.join("; ")
+        };
+
+        // Add comparison section
+        html.push_str(&format!(
+            r#"
+<div class="comparison">
+    <div class="header">
+        <h2>Artifact {}/{}</h2>
+        <div class="metadata">
+            <div><strong>Original files:</strong> {}</div>
+            <div><strong>Processing notes:</strong> {}</div>
+        </div>
+    </div>
+    <div class="side-by-side">
+        <div class="panel">
+            <h3>Original Scan</h3>
+            <div class="image-container">
+                <img src="{}" alt="Original scan" />
+            </div>
+        </div>
+        <div class="panel">
+            <h3>Corrected OCR Text</h3>
+            <div class="text-container">
+                <pre class="ocr-text">{}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+"#,
+            idx + 1,
+            artifacts.len(),
+            html_escape(&filenames),
+            html_escape(&notes),
+            data_url,
+            html_escape(corrected_text)
+        ));
+    }
+
+    // HTML footer
+    html.push_str("</body></html>");
+
+    // Write HTML file
+    fs::write(output_file, &html)
+        .with_context(|| format!("Failed to write HTML file: {}", output_file))?;
+
+    println!("✅ Comparison view complete!");
+    println!("   Output: {}", output_file);
+    println!("   Artifacts: {}", artifacts.len());
+    println!("\n💡 Open {} in a browser to view", output_file);
+
+    Ok(())
+}
+
+/// Generate HTML header with CSS styling
+fn generate_html_header(show_grid: bool) -> String {
+    let grid_css = if show_grid {
+        r#"
+        .ocr-text {
+            background-image: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent 0.6ch,
+                rgba(0, 150, 255, 0.1) 0.6ch,
+                rgba(0, 150, 255, 0.1) 0.61ch
+            );
+        }
+        "#
+    } else {
+        ""
+    };
+
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Comparison View</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }}
+        .comparison {{
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        .header {{
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }}
+        .header h2 {{
+            color: #333;
+            margin-bottom: 10px;
+        }}
+        .metadata {{
+            font-size: 14px;
+            color: #666;
+        }}
+        .metadata div {{
+            margin: 5px 0;
+        }}
+        .side-by-side {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }}
+        .panel {{
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }}
+        .panel h3 {{
+            background: #f8f8f8;
+            padding: 10px 15px;
+            margin: 0;
+            font-size: 16px;
+            color: #555;
+            border-bottom: 1px solid #ddd;
+        }}
+        .image-container {{
+            padding: 15px;
+            background: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            max-height: 800px;
+        }}
+        .image-container img {{
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            background: white;
+        }}
+        .text-container {{
+            padding: 15px;
+            background: #fafafa;
+            overflow: auto;
+            max-height: 800px;
+        }}
+        .ocr-text {{
+            font-family: "Courier New", Courier, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre;
+            background: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            color: #222;
+        }}
+        {}
+        @media (max-width: 1200px) {{
+            .side-by-side {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <h1 style="margin-bottom: 20px; color: #333;">IBM 1130 OCR Comparison View</h1>
+"#,
+        grid_css
+    )
+}
+
+/// Escape HTML special characters
+fn html_escape(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize tracing
@@ -609,6 +869,14 @@ async fn main() -> Result<()> {
         }
         Commands::TextDump { scan_set, output } => {
             text_dump_scan_set(&scan_set, &output)?;
+            Ok(())
+        }
+        Commands::Compare {
+            scan_set,
+            output,
+            show_grid,
+        } => {
+            generate_comparison_html(&scan_set, &output, show_grid)?;
             Ok(())
         }
         Commands::Serve { port, mode } => {
