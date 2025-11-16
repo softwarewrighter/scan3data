@@ -25,10 +25,10 @@ Columns 36-80 : Comment/label/instruction (varies by line type)
 **Example from OCR output**:
 ```
 OBFO    0       0078    DC      123             *NUMBER
-│││└─ location
-││└─── flag (blank/dash/equals)
-│└──── word 1
-└───── word 2
+|||+- location
+||+--- flag (blank/dash/equals)
+|+---- word 1
++----- word 2
        DC = Define Constant opcode
               123 = decimal value
                                  *NUMBER = comment
@@ -127,21 +127,21 @@ Columns 73-80 : Sequence number (ignored by compiler)
 **Use later columns to determine indentation**:
 
 1. **DC/BSS Instructions** (Define Constant/Block Storage):
-   - If "DC" appears in columns 14-19 → Location starts at column 1
-   - If "BSS" appears in columns 14-19 → Location starts at column 1
+   - If "DC" appears in columns 14-19 -> Location starts at column 1
+   - If "BSS" appears in columns 14-19 -> Location starts at column 1
    - Pattern: `DC|BSS|DEC|DECS|BSC`
 
 2. **Hex Addresses**:
-   - 4-digit hex at start → column 1
-   - 4-digit hex after spaces → determine offset
+   - 4-digit hex at start -> column 1
+   - 4-digit hex after spaces -> determine offset
    - Pattern: `[0-9A-F]{4}`
 
 3. **Opcode Recognition**:
-   - Three-letter opcodes (LDX, STX, ADD, etc.) → typically column 9-12
+   - Three-letter opcodes (LDX, STX, ADD, etc.) -> typically column 9-12
    - If found, backtrack to find label field start (column 1)
 
 4. **Sequence Numbers**:
-   - If columns 73-80 contain digits → FORTRAN format
+   - If columns 73-80 contain digits -> FORTRAN format
    - Actual code is columns 7-72
    - Indentation is relative to column 7
 
@@ -157,7 +157,7 @@ Columns 73-80 : Sequence number (ignored by compiler)
 2. **Relative Indentation**:
    - Measure indent relative to previous line
    - IF/THEN/ELSE blocks nest consistently
-   - Example: After "IF" → increase indent 4 spaces
+   - Example: After "IF" -> increase indent 4 spaces
 
 3. **Opcode Columns**:
    - All opcodes should align vertically
@@ -232,7 +232,7 @@ Output JSON:
 ```
 Given the layout from Pass 1 and the raw OCR text:
 1. Reconstruct each line with correct column positions
-2. Fix character errors (Be → DC, oc → OC)
+2. Fix character errors (Be -> DC, oc -> OC)
 3. Preserve exact spacing based on visual analysis
 
 Output:
@@ -247,16 +247,16 @@ Analyzing current OCR output patterns:
 
 ```
 OBFO-0-0078 BE 123---NUMBER ;
-│││ │ ││││ ││ │││   │││││││ │
+||| | |||| || |||   ||||||| |
 123 5 6789 ... (positions)
 ```
 
 Expected format:
 ```
 OBF0    0       0078    DC      123             *NUMBER
-│││└┘   │       ││││    ││      │││             │││││││
+|||++   |       ||||    ||      |||             |||||||
 1234    6       10      14      20              36
-└─ loc  └─ w1   └─ w2   └─ opc  └─ operand     └─ comment
++- loc  +- w1   +- w2   +- opc  +- operand     +- comment
 ```
 
 ## IBM 1130 Specific Opcodes
@@ -304,4 +304,4 @@ OBF0    0       0078    DC      123             *NUMBER
    - Hex addresses are 4 chars in columns 1-4
    - Opcodes align vertically
    - Comments preserve position
-   - Total line length ≤ 80 columns
+   - Total line length <= 80 columns

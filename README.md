@@ -47,19 +47,24 @@ scan3data/
 
 ## Features
 
-### Phase 1 (Current) - Non-LLM Baseline
+### Phase 1 - Image Acquisition & OCR
 - Classical image preprocessing (deskew, threshold, denoise)
-- Tesseract OCR integration
+- **Gemini 2.5 Flash Image (Nano Banana)** - AI-powered greenbar artifact removal
+- Tesseract OCR integration with IBM 1130 character whitelist
+- Ollama vision models (llama3.2-vision) for OCR correction
 - IBM 1130 object deck parsing
 - 80-column punch card text extraction
 - Duplicate detection (SHA-256 based)
 - Export to emulator formats (JSON)
 
-### Phase 2 (Planned) - LLM Integration
-- Vision LLM (Qwen2.5-VL, Phi-Vision) for classification
-- Text LLM (Qwen2.5, Phi-4) for refinement
-- Automatic page/card ordering
-- Gap detection and reconstruction
+### Phase 2 (In Progress) - Interactive Refinement
+- **Yew/WASM web UI** with 4-stage pipeline visualization
+  1. Upload -> 2. Image Cleaning (Gemini) -> 3. OCR -> 4. Validation
+- Vision LLM (Ollama) for layout-preserving OCR correction
+- IBM 1130-specific validation rules (hex sequence, character patterns)
+- Manual text editing and correction
+- Automatic page/card ordering (planned)
+- Gap detection and reconstruction (planned)
 
 ### Phase 3 (Future)
 - Document denoising/super-resolution
@@ -89,6 +94,22 @@ sudo apt-get install tesseract-ocr pkg-config libleptonica-dev libtesseract-dev
 ```
 
 **Note**: The `leptess` crate requires Tesseract and Leptonica libraries. On macOS, `pkgconf` is needed for the build process.
+
+### Configuration
+
+Set environment variables for AI services:
+
+```bash
+# Required for image cleaning (Gemini 2.5 Flash Image)
+export GEMINI_API_KEY="your-gemini-api-key"
+
+# Optional: For Ollama vision models (local)
+# Ollama runs at http://localhost:11434 by default
+```
+
+Get a Gemini API key at: https://ai.google.dev/
+
+Cost: Gemini 2.5 Flash Image is $0.039 per image.
 
 ### Build
 
@@ -139,10 +160,12 @@ Provides:
 
 ### LLM Bridge (llm_bridge)
 
-Integrates with local Ollama for:
-- Vision model calls (image -> classification)
+Integrates with AI services:
+- **Gemini 2.5 Flash Image** - Cloud API for image editing/cleaning
+- **Ollama** - Local LLM server for vision and text models
+- Vision model calls (image -> OCR correction)
 - Text model calls (text -> refinement)
-- Prompt templates
+- Prompt templates for IBM 1130-specific tasks
 
 ### CLI (cli)
 
@@ -158,19 +181,23 @@ REST API endpoints:
 - `POST /api/scan_sets` - Create new scan set
 - `POST /api/scan_sets/:id/upload` - Upload images
 - `GET /api/scan_sets/:id/artifacts` - Get processed artifacts
+- `POST /api/clean-image` - Clean image via Gemini API (removes greenbar artifacts)
 
 ### Frontend (yew_frontend)
 
 Browser UI:
-- File upload
-- Image preview
-- Page/card ordering (drag-drop)
-- Manual classification correction
-- Export controls
+- **4-stage pipeline visualization**
+  1. Upload - File selection
+  2. Image Cleaning - Gemini API integration (original vs cleaned comparison)
+  3. OCR Extraction - Tesseract + editable textarea
+  4. Validation - IBM 1130-specific error detection with suggestions
+- Page/card ordering (drag-drop) - planned
+- Manual text editing and correction
+- Export controls - planned
 
 Two modes:
-1. **Standalone SPA** - All processing in WASM (no backend)
-2. **API Client** - Offload heavy processing to backend
+1. **Standalone SPA** - All processing in WASM (no backend) - planned
+2. **API Client** - Offload heavy processing to backend (current)
 
 ## Duplicate Detection
 

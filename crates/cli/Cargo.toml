@@ -22,3 +22,8 @@ image = { workspace = true }
 walkdir = "2.5"
 chrono = "0.4"
 base64 = "0.22"
+built = "0.7"
+
+[build-dependencies]
+built = "0.7"
+chrono = "0.4"

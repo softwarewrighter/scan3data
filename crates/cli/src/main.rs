@@ -5,6 +5,11 @@
 //!
 //! Copyright (c) 2025 Michael A Wright
 
+// Include build-time information
+pub mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
 use anyhow::{Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
@@ -19,7 +24,84 @@ use walkdir::WalkDir;
 
 #[derive(Parser)]
 #[command(name = "scan3data")]
-#[command(about = "Three-phase pipeline: Scan -> Classify & Correct -> Convert", long_about = None)]
+#[command(version = concat!(
+    env!("CARGO_PKG_VERSION"), "\n",
+    "Copyright: Copyright (c) 2025 ", env!("CARGO_PKG_AUTHORS"), "\n",
+    "License: MIT\n",
+    "Repository: https://github.com/softwarewrighter/scan3data\n",
+    "Build Host: ", env!("BUILT_HOST"), "\n",
+    "Build Commit: ", env!("BUILT_GIT_COMMIT_HASH"), "\n",
+    "Build Time: ", env!("BUILT_TIME_UTC")
+))]
+#[command(about = "Three-phase pipeline: Scan -> Classify & Correct -> Convert")]
+#[command(long_about = r#"scan3data - IBM 1130 Scan Processing Pipeline
+
+Process scanned images of IBM 1130 punch cards and computer listings into
+structured data for emulator consumption.
+
+The "3" represents our three-phase pipeline:
+  1. Scan - Ingest and digitize (image acquisition, duplicate detection)
+  2. Classify & Correct - Analyze and refine (OCR, LLM classification)
+  3. Convert - Transform to structured output (emulator formats)
+
+EXAMPLES:
+  # Phase 1: Ingest scans
+  scan3data ingest -i ./scans -o ./my_scan_set
+
+  # Phase 2: Analyze with vision correction
+  scan3data analyze -s ./my_scan_set --use-vision --vision-model llama3.2-vision:11b
+
+  # Export raw OCR text for inspection
+  scan3data text-dump -s ./my_scan_set -o output.txt
+
+  # Generate comparison HTML (original vs corrected)
+  scan3data compare -s ./my_scan_set -o comparison.html
+
+  # Phase 3: Export to emulator format
+  scan3data export -s ./my_scan_set -o deck.json -f card_deck
+
+  # Serve web UI
+  scan3data serve --mode spa --port 8080
+
+AI CODING AGENT INSTRUCTIONS:
+
+This CLI provides a three-phase pipeline for processing IBM 1130 scans:
+
+PHASE 1 - INGEST:
+  Use the 'ingest' command to import scanned images. This command:
+  - Detects duplicate images via SHA-256 hashing
+  - Stores one copy of each unique image
+  - Preserves all filenames in metadata for context
+  - Creates a scan set directory with artifacts.json manifest
+
+PHASE 2 - ANALYZE:
+  Use the 'analyze' command to process the scan set. Options:
+  - Default: Tesseract OCR with IBM 1130 character whitelist
+  - --use-vision: Apply Ollama vision model for OCR correction
+  - --vision-model: Specify model (llama3.2-vision:11b recommended)
+  Vision correction preserves column layout and fixes character errors
+
+PHASE 3 - EXPORT:
+  Use the 'export' command to generate emulator-ready output:
+  - Format: card_deck (punch cards) or listing (printed output)
+  - Output: JSON file for IBM 1130 emulator consumption
+
+UTILITY COMMANDS:
+  - text-dump: Export raw OCR text for manual inspection
+  - compare: Generate HTML with side-by-side image/text comparison
+  - serve: Start web UI (SPA mode or API mode)
+
+ENVIRONMENT VARIABLES:
+  GEMINI_API_KEY - Required for image cleaning (Gemini 2.5 Flash Image)
+  - Get key at: https://ai.google.dev/
+  - Cost: $0.039 per image
+
+  Ollama - Optional for vision correction (local, free)
+  - Install from: https://ollama.com/
+  - Runs at http://localhost:11434
+
+For more information, see: https://github.com/softwarewrighter/scan3data
+"#)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
