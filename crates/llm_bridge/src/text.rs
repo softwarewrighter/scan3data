@@ -45,8 +45,8 @@ Return JSON only: {{"language": "...", "purpose": "...", "confidence": 0.0}}"#,
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt,
+                images: None,
             }],
-            images: None,
             stream: Some(false),
         };
 

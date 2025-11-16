@@ -44,8 +44,8 @@ Return only JSON: {"category": "...", "description": "..."}"#;
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt.to_string(),
+                images: Some(vec![image_b64]),
             }],
-            images: Some(vec![image_b64]),
             stream: Some(false),
         };
 
@@ -84,8 +84,8 @@ If you are unsure about a character, put ? in that position."#;
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt.to_string(),
+                images: Some(vec![image_b64]),
             }],
-            images: Some(vec![image_b64]),
             stream: Some(false),
         };
 
@@ -154,8 +154,8 @@ Return ONLY the corrected text with proper indentation."#,
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt,
+                images: Some(vec![image_b64]),
             }],
-            images: Some(vec![image_b64]),
             stream: Some(false),
         };
 

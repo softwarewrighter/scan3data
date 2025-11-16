@@ -63,8 +63,6 @@ pub struct ChatRequest {
     pub model: String,
     pub messages: Vec<ChatMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub images: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
 }
 
@@ -73,6 +71,8 @@ pub struct ChatRequest {
 pub struct ChatMessage {
     pub role: String,
     pub content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub images: Option<Vec<String>>,
 }
 
 /// Chat response from Ollama
@@ -101,8 +101,8 @@ mod tests {
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: "Hello".to_string(),
+                images: None,
             }],
-            images: None,
             stream: Some(false),
         };
 
