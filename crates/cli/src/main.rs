@@ -8,7 +8,10 @@
 use anyhow::{Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
-use core_pipeline::preprocess::{compute_image_hash, detect_duplicates, RgbImage};
+use core_pipeline::ocr::extract_text_tesseract;
+use core_pipeline::preprocess::{
+    compute_image_hash, detect_duplicates, preprocess_image, RgbImage,
+};
 use core_pipeline::types::{PageArtifact, PageId, PageMetadata, ScanSetId, ScanSetManifest};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -262,6 +265,120 @@ fn ingest_scan_set(input_path: &str, output_dir: &str) -> Result<()> {
     Ok(())
 }
 
+/// Analyze a scan set using OCR and optional LLM classification
+fn analyze_scan_set(scan_set_dir: &str, use_llm: bool) -> Result<()> {
+    let scan_set_path = Path::new(scan_set_dir);
+
+    if !scan_set_path.exists() {
+        anyhow::bail!("Scan set directory does not exist: {}", scan_set_dir);
+    }
+
+    println!("🔬 Analyzing scan set: {}", scan_set_dir);
+
+    // Load manifest
+    let manifest_path = scan_set_path.join("manifest.json");
+    let manifest_json = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("Failed to read manifest: {}", manifest_path.display()))?;
+    let manifest: ScanSetManifest =
+        serde_json::from_str(&manifest_json).context("Failed to parse manifest.json")?;
+
+    println!("📋 Scan Set ID: {}", manifest.scan_set_id.0);
+    println!("   Images: {}", manifest.image_count);
+
+    // Load artifacts
+    let artifacts_path = scan_set_path.join("artifacts.json");
+    let artifacts_json = fs::read_to_string(&artifacts_path)
+        .with_context(|| format!("Failed to read artifacts: {}", artifacts_path.display()))?;
+    let mut artifacts: Vec<PageArtifact> =
+        serde_json::from_str(&artifacts_json).context("Failed to parse artifacts.json")?;
+
+    println!("📄 Processing {} artifact(s)...", artifacts.len());
+
+    if use_llm {
+        println!("🤖 LLM mode enabled (not yet implemented)");
+    }
+
+    // Process each artifact
+    let processed_dir = scan_set_path.join("processed");
+    let total_artifacts = artifacts.len();
+
+    for (idx, artifact) in artifacts.iter_mut().enumerate() {
+        print!("\r   Artifact {}/{}", idx + 1, total_artifacts);
+        std::io::Write::flush(&mut std::io::stdout()).ok();
+
+        // Load the raw image
+        let raw_image_path = scan_set_path.join(&artifact.raw_image_path);
+        let img = image::open(&raw_image_path)
+            .with_context(|| format!("Failed to load image: {}", raw_image_path.display()))?;
+
+        // Preprocess the image
+        let preprocessed = preprocess_image(&img)?;
+
+        // Save preprocessed image
+        let processed_filename = raw_image_path
+            .file_name()
+            .ok_or_else(|| anyhow::anyhow!("Invalid image path"))?;
+        let processed_path = processed_dir.join(processed_filename);
+        preprocessed.save(&processed_path)?;
+
+        // Update artifact with processed image path
+        artifact.processed_image_path = Some(PathBuf::from("processed").join(processed_filename));
+
+        // Run OCR
+        match extract_text_tesseract(&preprocessed) {
+            Ok(text) => {
+                artifact.content_text = Some(text);
+            }
+            Err(e) => {
+                // Log OCR error but continue processing
+                eprintln!(
+                    "\n   Warning: OCR failed for {}: {}",
+                    artifact.raw_image_path.display(),
+                    e
+                );
+                artifact.metadata.notes.push(format!("OCR failed: {}", e));
+            }
+        }
+
+        // Basic classification (non-LLM baseline)
+        // TODO: Add more sophisticated heuristics
+        if let Some(ref text) = artifact.content_text {
+            if text.len() > 100 {
+                artifact.layout_label = core_pipeline::types::ArtifactKind::ListingSource;
+                artifact.metadata.confidence = 0.5; // Low confidence for basic heuristic
+            }
+        }
+    }
+    println!();
+
+    // Save updated artifacts
+    let updated_artifacts_json = serde_json::to_string_pretty(&artifacts)?;
+    fs::write(&artifacts_path, updated_artifacts_json)
+        .with_context(|| format!("Failed to write artifacts: {}", artifacts_path.display()))?;
+
+    println!("✅ Analysis complete!");
+    println!("   Processed images: {}", processed_dir.display());
+    println!("   Updated artifacts: {}", artifacts_path.display());
+
+    // Show OCR statistics
+    let with_text = artifacts
+        .iter()
+        .filter(|a| a.content_text.is_some())
+        .count();
+    let avg_text_len = artifacts
+        .iter()
+        .filter_map(|a| a.content_text.as_ref())
+        .map(|t| t.len())
+        .sum::<usize>() as f64
+        / with_text.max(1) as f64;
+
+    println!("📊 OCR Statistics:");
+    println!("   Artifacts with text: {}/{}", with_text, artifacts.len());
+    println!("   Average text length: {:.0} chars", avg_text_len);
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize tracing
@@ -275,8 +392,7 @@ async fn main() -> Result<()> {
             Ok(())
         }
         Commands::Analyze { scan_set, use_llm } => {
-            println!("Analyzing scan set: {} (LLM: {})", scan_set, use_llm);
-            // TODO: Implement analyze command
+            analyze_scan_set(&scan_set, use_llm)?;
             Ok(())
         }
         Commands::Export {
