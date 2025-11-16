@@ -53,6 +53,7 @@ Current Tesseract OCR extraction has several issues:
    - Known .job files, assembler listings, Forth decks
    - Download entire IBM 1130 collection
    - Parse and index by content type
+   - **NOTE**: Implement automated .job file fetching and lookup system (future consideration)
 
 2. **IBM 1130 Archives**:
    - http://ibm1130.org/ - Community archives

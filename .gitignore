@@ -9,3 +9,4 @@ node_modules/
 
 test_scan_set/
 ocr_output.txt
+ocr_output_enhanced.txt

@@ -5,18 +5,19 @@
 
 use anyhow::{Context, Result};
 use image::GrayImage;
-use leptess::LepTess;
+use leptess::{LepTess, Variable};
 
-/// Extract text from an image using Tesseract OCR
+/// Extract text from an image using Tesseract OCR with layout preservation
 ///
-/// Uses Tesseract without character whitelist (permissive mode).
-/// Post-processing should validate characters based on expected IBM 1130 character sets.
+/// Configures Tesseract to preserve whitespace and column alignment for punch cards.
+/// Uses PSM (Page Segmentation Mode) 6 for uniform block of text.
+/// Restricts to IBM 1130 character set for better accuracy.
 ///
 /// # Arguments
 /// * `input` - Grayscale image to extract text from
 ///
 /// # Returns
-/// * Extracted text as a string, preserving layout
+/// * Extracted text as a string, preserving layout and whitespace
 ///
 /// # Errors
 /// * Returns error if Tesseract is not installed or OCR fails
@@ -24,6 +25,14 @@ pub fn extract_text_tesseract(input: &GrayImage) -> Result<String> {
     // Initialize Tesseract
     let mut tesseract = LepTess::new(None, "eng")
         .context("Failed to initialize Tesseract. Is Tesseract installed?")?;
+
+    // IBM 1130 character whitelist
+    // Uppercase A-Z, digits 0-9, and punch card special characters
+    // No lowercase - punch cards don't have lowercase
+    let ibm1130_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 +-*/=().,;:$#@'&|_<>?!\"";
+    tesseract
+        .set_variable(Variable::TesseditCharWhitelist, ibm1130_chars)
+        .context("Failed to set character whitelist")?;
 
     // Convert GrayImage to PNG bytes for leptess
     // leptess requires image data in a standard format (PNG, JPEG, etc.)
@@ -37,6 +46,11 @@ pub fn extract_text_tesseract(input: &GrayImage) -> Result<String> {
     tesseract
         .set_image_from_mem(&png_bytes)
         .context("Failed to load image into Tesseract")?;
+
+    // Set higher DPI for better recognition
+    // Tesseract works best at 300 DPI
+    // Must be called AFTER set_image
+    tesseract.set_source_resolution(300);
 
     // Extract text
     let text = tesseract
