@@ -23,6 +23,23 @@ impl Default for ScanSetId {
     }
 }
 
+/// Manifest file for a scan set
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanSetManifest {
+    /// Unique identifier for this scan set
+    pub scan_set_id: ScanSetId,
+    /// Human-readable name/description
+    pub name: String,
+    /// Creation timestamp (ISO 8601)
+    pub created_at: String,
+    /// Number of unique images (after deduplication)
+    pub image_count: usize,
+    /// Number of original files ingested (including duplicates)
+    pub original_file_count: usize,
+    /// Number of duplicate images detected
+    pub duplicate_count: usize,
+}
+
 /// Unique identifier for a page artifact
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PageId(pub Uuid);
