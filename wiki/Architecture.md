@@ -19,14 +19,14 @@ scan3data is organized as 5 interconnected Rust crates within a Cargo workspace:
 graph TB
     subgraph "Workspace: scan3data"
         subgraph "Library Crates"
-            CORE[core_pipeline<br/>Image processing, OCR, CIR types<br/>No networking]
-            LLM[llm_bridge<br/>Gemini & Ollama API clients<br/>HTTP-based]
-            YEW[yew_frontend<br/>Yew/WASM UI components<br/>Browser target]
+            CORE[core_pipeline Image processing, OCR, CIR types No networking]
+            LLM[llm_bridge Gemini & Ollama API clients HTTP-based]
+            YEW[yew_frontend Yew/WASM UI components Browser target]
         end
 
         subgraph "Binary Crates"
-            CLI[cli<br/>scan3data binary<br/>Commands: ingest, analyze, export, serve]
-            SRV[server<br/>scan3data-server binary<br/>Axum REST API]
+            CLI[cli scan3data binary Commands: ingest, analyze, export, serve]
+            SRV[server scan3data-server binary Axum REST API]
         end
     end
 
@@ -55,36 +55,36 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Presentation Layer"
-        UI[Yew Web UI<br/>WASM]
+        UI[Yew Web UI WASM]
         CLICMD[CLI Commands]
     end
 
     subgraph "API Layer"
-        REST[REST API<br/>Axum/Tokio]
+        REST[REST API Axum/Tokio]
         SERVE[Static File Server]
     end
 
     subgraph "Business Logic Layer"
-        INGEST[Ingest Pipeline<br/>Duplicate Detection]
-        ANALYZE[Analyze Pipeline<br/>OCR, Classification]
-        EXPORT[Export Pipeline<br/>Emulator Formats]
+        INGEST[Ingest Pipeline Duplicate Detection]
+        ANALYZE[Analyze Pipeline OCR, Classification]
+        EXPORT[Export Pipeline Emulator Formats]
     end
 
     subgraph "Core Processing"
-        PREPROC[Image Preprocessing<br/>Deskew, Threshold]
-        OCR[OCR Engine<br/>Tesseract Integration]
-        DECODER[IBM 1130 Decoder<br/>Object Deck Parser]
-        CIR[CIR Types<br/>ScanSet, Artifacts]
+        PREPROC[Image Preprocessing Deskew, Threshold]
+        OCR[OCR Engine Tesseract Integration]
+        DECODER[IBM 1130 Decoder Object Deck Parser]
+        CIR[CIR Types ScanSet, Artifacts]
     end
 
     subgraph "External Integration"
-        GEMINI[Gemini API<br/>Image Cleaning]
-        OLLAMA[Ollama API<br/>Vision Models]
-        TESS[Tesseract<br/>OCR Binary]
+        GEMINI[Gemini API Image Cleaning]
+        OLLAMA[Ollama API Vision Models]
+        TESS[Tesseract OCR Binary]
     end
 
     subgraph "Storage"
-        FS[File System<br/>Images, JSON, CIR]
+        FS[File System Images, JSON, CIR]
     end
 
     UI --> REST
@@ -318,8 +318,8 @@ graph TB
 
 ```mermaid
 graph TB
-    USER[User Browser] --> UI[Yew UI<br/>Port 7214]
-    UI <--> API[REST API<br/>Axum Server]
+    USER[User Browser] --> UI[Yew UI Port 7214]
+    UI <--> API[REST API Axum Server]
     API --> CORE[Core Pipeline]
     API --> LLM[LLM Bridge]
     API --> QUEUE[Job Queue]
@@ -362,11 +362,11 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Frontend (Rust -> WASM)"
-        YEW[Yew 0.21<br/>Reactive Framework]
-        WASM[wasm-bindgen<br/>JS Interop]
-        WEB[web-sys<br/>Web APIs]
-        GLOO[gloo<br/>WASM Utilities]
-        NET[gloo-net<br/>HTTP Client]
+        YEW[Yew 0.21 Reactive Framework]
+        WASM[wasm-bindgen JS Interop]
+        WEB[web-sys Web APIs]
+        GLOO[gloo WASM Utilities]
+        NET[gloo-net HTTP Client]
     end
 
     YEW --> WASM
@@ -383,10 +383,10 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Backend (Rust)"
-        AXUM[Axum 0.7<br/>HTTP Framework]
-        TOKIO[Tokio 1.0<br/>Async Runtime]
-        TOWER[Tower<br/>Middleware]
-        SERDE[Serde<br/>Serialization]
+        AXUM[Axum 0.7 HTTP Framework]
+        TOKIO[Tokio 1.0 Async Runtime]
+        TOWER[Tower Middleware]
+        SERDE[Serde Serialization]
     end
 
     AXUM --> TOKIO
@@ -402,20 +402,20 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Image Processing"
-        IMG[image 0.25<br/>Image I/O]
-        PROC[imageproc 0.25<br/>Processing Ops]
-        LEPT[leptess 0.14<br/>Tesseract Binding]
+        IMG[image 0.25 Image I/O]
+        PROC[imageproc 0.25 Processing Ops]
+        LEPT[leptess 0.14 Tesseract Binding]
     end
 
     subgraph "LLM Integration"
-        REQ[reqwest 0.12<br/>HTTP Client]
-        B64[base64 0.22<br/>Encoding]
+        REQ[reqwest 0.12 HTTP Client]
+        B64[base64 0.22 Encoding]
     end
 
     subgraph "Core Types"
-        SER[serde + serde_json<br/>Serialization]
-        UUID[uuid 1.0<br/>Identifiers]
-        ERR[anyhow + thiserror<br/>Error Handling]
+        SER[serde + serde_json Serialization]
+        UUID[uuid 1.0 Identifiers]
+        ERR[anyhow + thiserror Error Handling]
     end
 ```
 

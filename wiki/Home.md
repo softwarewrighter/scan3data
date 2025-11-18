@@ -99,23 +99,23 @@ See **[CLI](CLI)** for detailed command documentation.
 ```mermaid
 graph TB
     subgraph "Frontend"
-        UI[Yew/WASM UI<br/>4-Stage Pipeline]
+        UI[Yew/WASM UI 4-Stage Pipeline]
     end
 
     subgraph "Backend"
-        API[Axum REST API<br/>Port 7214]
-        CLI[CLI Commands<br/>ingest/analyze/export]
+        API[Axum REST API Port 7214]
+        CLI[CLI Commands ingest/analyze/export]
     end
 
     subgraph "Core Processing"
-        CP[Core Pipeline<br/>OCR, Preprocessing]
-        LLM[LLM Bridge<br/>Gemini, Ollama]
+        CP[Core Pipeline OCR, Preprocessing]
+        LLM[LLM Bridge Gemini, Ollama]
     end
 
     subgraph "External Services"
-        GEM[Gemini 2.5 Flash<br/>Image Cleaning]
-        OLL[Ollama<br/>Vision Models]
-        TESS[Tesseract<br/>OCR Engine]
+        GEM[Gemini 2.5 Flash Image Cleaning]
+        OLL[Ollama Vision Models]
+        TESS[Tesseract OCR Engine]
     end
 
     UI --> API

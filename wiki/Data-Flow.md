@@ -77,7 +77,7 @@ sequenceDiagram
             Core-->>CLI: Artifact with original_filename
         else Duplicate hash
             CLI->>Core: Append filename to existing artifact
-            Note over CLI,Core: Multiple filenames stored<br/>for same image hash
+            Note over CLI,Core: Multiple filenames stored for same image hash
         end
     end
 
@@ -150,7 +150,7 @@ sequenceDiagram
         Tess-->>CLI: OCR text
 
         CLI->>Core: classify_artifact()
-        Core->>Core: Apply heuristics<br/>(card vs listing, text vs binary)
+        Core->>Core: Apply heuristics (card vs listing, text vs binary)
         Core-->>CLI: ArtifactKind
 
         CLI->>Core: Update artifact metadata
@@ -321,10 +321,10 @@ sequenceDiagram
     UI->>UI: Update stage: Upload → ImageCleaning
 
     User->>UI: Click "Clean Image"
-    UI->>API: POST /api/clean-image<br/>{ image_data: base64 }
+    UI->>API: POST /api/clean-image { image_data: base64 }
     API->>LLM: clean_image(bytes)
     LLM->>LLM: Encode to base64
-    LLM->>Gemini: POST /v1/models/gemini-2.5-flash-image<br/>Prompt: "Remove greenbar artifacts"
+    LLM->>Gemini: POST /v1/models/gemini-2.5-flash-image Prompt: "Remove greenbar artifacts"
     Gemini-->>LLM: Cleaned image (base64)
     LLM-->>API: Cleaned image data
     API-->>UI: { cleaned_image_data: base64 }
@@ -346,7 +346,7 @@ sequenceDiagram
     participant Tess as Tesseract
 
     User->>UI: Click "Run OCR"
-    UI->>API: POST /api/ocr-extract<br/>{ image_data: base64, use_cleaned: true }
+    UI->>API: POST /api/ocr-extract { image_data: base64, use_cleaned: true }
     API->>Core: run_ocr(image_bytes)
     Core->>Core: Preprocess image
     Core->>Tess: Extract text (IBM 1130 whitelist)
@@ -417,19 +417,19 @@ Detailed flow for SHA-256-based duplicate detection during ingest.
 flowchart TD
     Start([Start: Process Image File]) --> ReadFile[Read image file bytes]
     ReadFile --> ComputeHash[Compute SHA-256 hash]
-    ComputeHash --> CheckHash{Hash in<br/>hash_map?}
+    ComputeHash --> CheckHash{Hash in hash_map?}
 
-    CheckHash -->|No - New image| StoreImage[Store image as<br/>hash.jpg]
-    StoreImage --> CreateArtifact[Create new<br/>PageArtifact/CardArtifact]
-    CreateArtifact --> AddFilename[Add original_filename<br/>to metadata]
+    CheckHash -->|No - New image| StoreImage[Store image as hash.jpg]
+    StoreImage --> CreateArtifact[Create new PageArtifact/CardArtifact]
+    CreateArtifact --> AddFilename[Add original_filename to metadata]
     AddFilename --> UpdateMap[Add hash to hash_map]
     UpdateMap --> Continue([Continue to next file])
 
-    CheckHash -->|Yes - Duplicate| LookupArtifact[Lookup existing artifact<br/>by hash]
-    LookupArtifact --> AppendFilename[Append filename to<br/>original_filenames array]
+    CheckHash -->|Yes - Duplicate| LookupArtifact[Lookup existing artifact by hash]
+    LookupArtifact --> AppendFilename[Append filename to original_filenames array]
     AppendFilename --> Continue
 
-    Continue --> MoreFiles{More<br/>files?}
+    Continue --> MoreFiles{More files?}
     MoreFiles -->|Yes| ReadFile
     MoreFiles -->|No| SaveCIR[Save artifacts.json]
     SaveCIR --> End([End])
@@ -494,7 +494,7 @@ sequenceDiagram
     participant User
     participant CLI
     participant Core
-    participant External as External Service<br/>(Tesseract, Gemini, etc.)
+    participant External as External Service (Tesseract, Gemini, etc.)
 
     User->>CLI: Run command
     CLI->>Core: Process operation
@@ -520,24 +520,24 @@ sequenceDiagram
 graph TB
     Error[Error Occurs] --> Classify{Error Type?}
 
-    Classify -->|I/O Error| IO[File not found,<br/>permission denied]
-    Classify -->|Network Error| NET[Connection failed,<br/>timeout]
-    Classify -->|OCR Error| OCR[Tesseract failed,<br/>bad image]
-    Classify -->|LLM Error| LLM[API key invalid,<br/>rate limit]
-    Classify -->|Validation Error| VAL[Invalid format,<br/>bad data]
+    Classify -->|I/O Error| IO[File not found, permission denied]
+    Classify -->|Network Error| NET[Connection failed, timeout]
+    Classify -->|OCR Error| OCR[Tesseract failed, bad image]
+    Classify -->|LLM Error| LLM[API key invalid, rate limit]
+    Classify -->|Validation Error| VAL[Invalid format, bad data]
 
     IO --> Retry{Retryable?}
     NET --> Retry
-    OCR --> Fallback{Fallback<br/>available?}
+    OCR --> Fallback{Fallback available?}
     LLM --> Fallback
     VAL --> Log[Log error]
 
-    Retry -->|Yes| RetryOp[Retry with<br/>exponential backoff]
+    Retry -->|Yes| RetryOp[Retry with exponential backoff]
     Retry -->|No| Log
     RetryOp -->|Success| Continue[Continue]
     RetryOp -->|Failed| Log
 
-    Fallback -->|Yes| UseFallback[Use baseline<br/>method]
+    Fallback -->|Yes| UseFallback[Use baseline method]
     Fallback -->|No| Log
     UseFallback --> Continue
 
@@ -590,7 +590,7 @@ sequenceDiagram
     UI->>API: POST /api/clean-image
     API->>LLM: clean_image()
     LLM->>Gemini: POST request
-    Gemini--xLLM: 429 Too Many Requests<br/>Retry-After: 60s
+    Gemini--xLLM: 429 Too Many Requests Retry-After: 60s
     LLM->>LLM: Exponential backoff retry (2s, 4s, 8s, 16s)
 
     alt Retry succeeds
@@ -599,7 +599,7 @@ sequenceDiagram
         API-->>UI: { cleaned_image_data }
     else All retries fail
         LLM--xAPI: Error: Rate limit exceeded
-        API-->>UI: 503 Service Unavailable<br/>{ error: "Try again in 60s" }
+        API-->>UI: 503 Service Unavailable { error: "Try again in 60s" }
         UI->>UI: Show error toast
     end
 ```

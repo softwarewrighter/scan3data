@@ -8,9 +8,9 @@ scan3data follows a Test-Driven Development (TDD) approach with multiple test la
 
 ```mermaid
 graph TB
-    E2E[End-to-End Tests<br/>Full pipeline workflows]
-    INT[Integration Tests<br/>Crate interactions]
-    UNIT[Unit Tests<br/>Individual functions]
+    E2E[End-to-End Tests Full pipeline workflows]
+    INT[Integration Tests Crate interactions]
+    UNIT[Unit Tests Individual functions]
 
     E2E --> INT
     INT --> UNIT

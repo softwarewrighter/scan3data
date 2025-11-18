@@ -6,13 +6,13 @@ scan3data supports three deployment modes to suit different use cases: CLI-only 
 
 ```mermaid
 graph TB
-    MODE1[Mode 1: CLI-Only<br/>Batch Processing]
-    MODE2[Mode 2: Standalone SPA<br/>Browser-Only]
-    MODE3[Mode 3: Full-Stack<br/>Backend + Frontend]
+    MODE1[Mode 1: CLI-Only Batch Processing]
+    MODE2[Mode 2: Standalone SPA Browser-Only]
+    MODE3[Mode 3: Full-Stack Backend + Frontend]
 
-    MODE1 -->|Use Case| UC1[Server automation<br/>Large batches<br/>No GUI needed]
-    MODE2 -->|Use Case| UC2[Offline usage<br/>No server setup<br/>Privacy-sensitive]
-    MODE3 -->|Use Case| UC3[Production deployment<br/>LLM integration<br/>Multiple users]
+    MODE1 -->|Use Case| UC1[Server automation Large batches No GUI needed]
+    MODE2 -->|Use Case| UC2[Offline usage No server setup Privacy-sensitive]
+    MODE3 -->|Use Case| UC3[Production deployment LLM integration Multiple users]
 
     style MODE1 fill:#c8e6c9
     style MODE2 fill:#fff9c4
@@ -218,12 +218,12 @@ aws cloudfront create-invalidation --distribution-id XXX --paths "/*"
 
 ```mermaid
 graph TB
-    USER[User Browser] --> UI[Yew Frontend<br/>Port 7214]
-    UI <--> API[REST API<br/>Axum Server]
+    USER[User Browser] --> UI[Yew Frontend Port 7214]
+    UI <--> API[REST API Axum Server]
     API --> CORE[Core Pipeline]
     API --> LLM[LLM Bridge]
     API --> QUEUE[Job Queue]
-    API --> DB[Database<br/>SQLite/PostgreSQL]
+    API --> DB[Database SQLite/PostgreSQL]
 
     CORE --> TESS[Tesseract]
     LLM --> GEM[Gemini API]

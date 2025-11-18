@@ -59,8 +59,8 @@ scan3data strictly follows **Red/Green/Refactor** cycle:
 
 ```mermaid
 graph LR
-    RED[🔴 RED<br/>Write failing test] --> GREEN[🟢 GREEN<br/>Write minimal code]
-    GREEN --> REFACTOR[🔵 REFACTOR<br/>Improve code]
+    RED[🔴 RED Write failing test] --> GREEN[🟢 GREEN Write minimal code]
+    GREEN --> REFACTOR[🔵 REFACTOR Improve code]
     REFACTOR --> RED
 
     style RED fill:#ffcdd2

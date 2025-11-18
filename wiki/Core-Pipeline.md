@@ -50,11 +50,11 @@ core_pipeline/src/
 
 ```mermaid
 graph TB
-    LIB[lib.rs<br/>Public API] --> TYPES[types.rs<br/>CIR Types]
-    LIB --> PREPROC[preprocess.rs<br/>Image Processing]
-    LIB --> OCR[ocr.rs<br/>OCR Integration]
-    LIB --> DEC[decoder.rs<br/>Decoder]
-    LIB --> UTILS[utils.rs<br/>Utilities]
+    LIB[lib.rs Public API] --> TYPES[types.rs CIR Types]
+    LIB --> PREPROC[preprocess.rs Image Processing]
+    LIB --> OCR[ocr.rs OCR Integration]
+    LIB --> DEC[decoder.rs Decoder]
+    LIB --> UTILS[utils.rs Utilities]
 
     PREPROC --> TYPES
     OCR --> TYPES
@@ -164,11 +164,11 @@ Classical computer vision techniques for improving OCR accuracy.
 
 ```mermaid
 graph LR
-    A[Raw Image<br/>RGB] --> B[Grayscale<br/>Convert]
-    B --> C[Deskew<br/>Hough Transform]
-    C --> D[Adaptive Threshold<br/>Otsu]
-    D --> E[Morphological Ops<br/>Opening/Closing]
-    E --> F[Preprocessed<br/>Binary Image]
+    A[Raw Image RGB] --> B[Grayscale Convert]
+    B --> C[Deskew Hough Transform]
+    C --> D[Adaptive Threshold Otsu]
+    D --> E[Morphological Ops Opening/Closing]
+    E --> F[Preprocessed Binary Image]
 
     style A fill:#ffcdd2
     style F fill:#c8e6c9
